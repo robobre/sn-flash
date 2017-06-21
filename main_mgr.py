@@ -21,7 +21,26 @@ def usage():
     print("python main_mgr.py --task simu --prepare --nb_file 10 --event_per_file 100 --exp_name Demonstrator")
     print("python main_mgr.py --task simu --run /sps/nemo/scratch/simu/ylemiere/damned_simu_1")
     print("python main_mgr.py --task simu --store /sps/nemo/scratch/simu/ylemiere/damned_simu_1")
-    print("python main_mgr.py --task reco --input_data='/abs_dir/run_1'")
+    print("python main_mgr.py --task reco --input_data='/abs_dir/run_1'\n\n")
+    print("List of option")
+    print("--task [simu/reco]\n")
+    print(" if simu [--prepare,--run,--store]\n")
+    print("        --prepare")
+    print("          |-> --input_variant_file PATH/FILE_NAME (optionnal)")
+    print("          |-> --nb_file NUMBER")
+    print("          |-> --nb_file NUMBER")
+    print("          |-> --event_per_file NUMBER")
+    print("          `-> --exp_name  (Demonstrator, ...)")    
+    print("        --run")
+    print("          `-> INPUT_PATH")
+    print("        --store")
+    print("          `-> INPUT_PATH")
+    
+    print(" if  reco")
+    
+    
+    
+
     print("-----------------")
     return 1
 
@@ -42,13 +61,16 @@ if __name__ == '__main__':
     try:
         APP_NAME=sys.argv[0]
         input_data_path=None
-        
+        variant_file=None
+
         simulation=False
         reconstruction=False
         production=False
         prepare_mc_tree=False
         store_mc_tarball=False
         run_mc=False
+
+
         if len(sys.argv) < 2:
             usage()
             sys.exit(1)
@@ -57,6 +79,8 @@ if __name__ == '__main__':
             i=0
             for arg in sys.argv[1:]:
                 i=i+1
+                if arg == "--input_variant_file" or arg == "-ivf":
+                    variant_file=sys.argv[i+1]
                 if arg == "--nb_file" or arg == "-nf":
                     nb_file=sys.argv[i+1]
                 elif arg == "--event_per_file" or arg == "-ne":
@@ -104,11 +128,12 @@ if __name__ == '__main__':
 
     if debug:
         print("DEBUG : %s : List of arguments" %APP_NAME )
-        print "INFO :  task  == ",
+        print "DEBUG :  task  == ",
         if simulation == True and reconstruction == False:
             print("Simulation")
             if prepare_mc_tree == True:
                 print("              |-> Prepare working tree")
+                print("              |-> variant_file     : %s "%variant_file)
                 print("              |-> nb of file       : %s "%nb_file)
                 print("              |-> event per file   : %s "%nb_event)            
                 print("              `-> experiment       : %s "%exp_name)
@@ -127,15 +152,15 @@ if __name__ == '__main__':
     if simulation == True and reconstruction == False:
         if prepare_mc_tree == True:
             try: 
-                print("INFO : start : sn_simu_mgr.prepare_mc(nb_file,nb_event,exp_name,production)")
-                sn_simu_mgr_next.prepare_mc_tree(nb_file,nb_event,exp_name,production)
+                print("DEBUG : start : sn_simu_mgr.prepare_mc(nb_file,nb_event,exp_name,production,variant_file)")
+                sn_simu_mgr_next.prepare_mc_tree(nb_file,nb_event,exp_name,production,variant_file)
                 print("INFO : You can process that cmd :\n python main_mgr.py --task simu --run PATH")
             except:
                 print("ERROR : %s : Can not execute prepare_mc"%APP_NAME)
                 sys.exit(1)
         if run_mc == True:
             try: 
-                print("INFO : start : sn_simu_mgr.run_mc(input_data_path,FARM_LOCATION)")
+                print("DEBUG : start : sn_simu_mgr.run_mc(input_data_path,FARM_LOCATION)")
                 FARM_LOCATION="CCLYON"
                 sn_simu_mgr_next.run_mc(input_data_path,FARM_LOCATION)
             except:
@@ -143,7 +168,7 @@ if __name__ == '__main__':
                 sys.exit(1)
         if store_mc_tarball == True:
             try: 
-                print("INFO : %s : Store simulation tarball on HPSS@CCLYON" % APP_NAME)
+                print("DEBUG : %s : Store simulation tarball on HPSS@CCLYON" % APP_NAME)
                 FARM_LOCATION="CCLYON"
                 sn_simu_mgr_next.publish_production(input_data_path,simulation, production)
                 #sn_simu_mgr_next.prepare_tarball(input_data_path)
@@ -158,7 +183,7 @@ if __name__ == '__main__':
 
     if simulation == False and reconstruction == True:
         try: 
-            print("INFO : %s Try to start reco process" % APP_NAME)
+            print("DEBUG : %s Try to start reco process" % APP_NAME)
         except:
             print("ERROR : %s Can not execute reco process"%APP_NAME)
             sys.exit(1)

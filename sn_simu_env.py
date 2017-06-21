@@ -37,6 +37,7 @@ urn_blessed_snemo="urn:snemo:demonstrator:simulation:2.1"
 sw_snemo_simulation="flsimulate"
 sw_snemo_configuration="flsimulate-configure"
 bx_seeds="bxg4_seeds"
+bxvariant_inspector="bxvariant_inspector"
 
 
 ############# Output env

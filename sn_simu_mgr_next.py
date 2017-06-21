@@ -33,7 +33,7 @@ execfile("sn_simu_env.py")
 #   2017/02 --> VARIANT_REL_PATH="config/snemo/demonstrator/simulation/geant4_control/2.1/variants/repository.conf" 
 #               |-> define in sn_simu_env.py but should propose/build by input/variable ? (demonstrator || bipo || half-comm)
 #               |-> Improve a uniq id.
-#   2017/06 --> Prepare some stuff to manage blessed uniq ID 
+#   2017/06 --> Prepare some uniq server to provide blessed uniq ID before storage
 #           --> Improve the way to create hpss dir     
 ###
 
@@ -85,11 +85,11 @@ def prepare_tarball(arg0=None):
         print("ERROR : %s : Need to provide simu filename to make a tarball"% function_name)
         sys.exit(1)
 
-    print("INFO  : %s : Ready to make a tarball with %s" % (function_name,CURRENT_OUTPUT_PATH))
+    print("DEBUG : %s : Ready to make a tarball with %s" % (function_name,CURRENT_OUTPUT_PATH))
     
     in_file=CURRENT_OUTPUT_PATH#+"/"+simu_file_name
     simu_file_name      = os.path.basename(in_file)
-    print ("INFO  : %s : prepare tarball from : %s "%(function_name,simu_file_name))
+    print ("DEBUG  : %s : prepare tarball from : %s "%(function_name,simu_file_name))
     tarball_name=in_file+".tar.gz"
 
     tar = tarfile.open(tarball_name, 'w:gz')
@@ -97,7 +97,7 @@ def prepare_tarball(arg0=None):
         tar.add(name,arcname=simu_file_name)
     tar.close()
     
-    print("INFO  : Tarball prepared and ready to be stored safely")
+    print("DEBUG : Tarball prepared and ready to be stored safely")
     
     
     
@@ -121,7 +121,7 @@ def store_mc(arg0=None,arg1=None,arg2=None):
         print("ERROR : Do not support other farm than CCLYON")
         sys.exit(1)
     else:
-        print("INFO  : Ready to store %s on HPSS@CCLYON"%file_to_store)
+        print("DEBUG  : Ready to store %s on HPSS@CCLYON"%file_to_store)
     if arg2 == True:
         prod_mode=arg2
         print("INFO  : Storage in production mode (blessed) activated")
@@ -153,7 +153,7 @@ def run_mc(arg0=None,arg1=None):
         print("ERROR : Do not support other farm than CCLYON")
         sys.exit(1)
     else:
-        print("INFO : Ready to submit job at CCLYON")
+        print("DEBUG : Ready to submit job at CCLYON")
         
     launch_path=main_path+sys_rel_path
         
@@ -181,14 +181,20 @@ def run_mc(arg0=None,arg1=None):
 
 
 
-def prepare_mc_tree(arg0=None,arg1=None,arg2=None,arg3=None):
+def prepare_mc_tree(arg0=None,arg1=None,arg2=None,arg3=None,arg4=None):
     
     debug=True
+    gui_mode=True
     prepare_simu_start_time= datetime.now()
     function_name="prepare_mc_tree"
-    
+
+    ### Something to improve
+    urn_used=urn_blessed_snemo
+
+
+
     if debug:
-        print ("INFO : Enter in %s(%s, %s, %s, %s) "%(function_name,arg0,arg1,arg2,arg3) )
+        print ("INFO : Enter in %s(%s, %s, %s, %s, %s) "%(function_name,arg0,arg1,arg2,arg3,arg4) )
         
         
     nb_of_file          = arg0
@@ -198,11 +204,17 @@ def prepare_mc_tree(arg0=None,arg1=None,arg2=None,arg3=None):
         production_mode = True
     else:
         production_mode = False
-                
-        
+    if arg4 == None:
+        variant_profile = None
+        print ("INFO : %s : GUI mode activated"%(function_name))
+        gui_mode=True
+    else:
+        variant_profile     = arg4
+        print ("INFO : %s : GUI mode NOT activated"%(function_name))
+        gui_mode=False
         
     if production_mode:
-        print ("INFO : Production mode activated")
+        print ("\nINFO : Production mode activated\n")
         prefix_simu_file="sn_simu"
         SIMU_PATH=MAIN_SIMU_PATH+"/blessed"
         last_simu_index=0                                        ### A changer avec uniq ID
@@ -221,7 +233,7 @@ def prepare_mc_tree(arg0=None,arg1=None,arg2=None,arg3=None):
         
     CURRENT_OUTPUT_PATH=SIMU_PATH+"/"+prefix_simu_file+"_"+str(current_simu_index)
     
-     ###  ./config directory
+ #     ###  ./config directory
     MAIN_CONFIG_PATH=CURRENT_OUTPUT_PATH+config_rel_path
     SEEDS_PATH= MAIN_CONFIG_PATH+seed_rel_path
     VARIANT_PATH=MAIN_CONFIG_PATH+variant_rel_path
@@ -261,7 +273,7 @@ def prepare_mc_tree(arg0=None,arg1=None,arg2=None,arg3=None):
 
      
 
-    ################ Create tree directories for simulation bunch ##########
+ #    ################ Create tree directories for simulation bunch ##########
     try:
         os.makedirs(CURRENT_OUTPUT_PATH)
         #config
@@ -289,6 +301,9 @@ def prepare_mc_tree(arg0=None,arg1=None,arg2=None,arg3=None):
     if debug:
         print ("DEBUG : Working tree produced ! ")
 
+        
+
+
     p = subprocess.Popen(args=["%s%s --version" % (SW_PATH,sw_snemo_simulation)],stdout=subprocess.PIPE,stderr=subprocess.STDOUT,shell=True)
     outputlines = p.stdout.readlines()
     p.wait()
@@ -300,6 +315,8 @@ def prepare_mc_tree(arg0=None,arg1=None,arg2=None,arg3=None):
     log_file.write("DEBUG : ***** SW used ******\n")     
     log_file.write("DEBUG : Simulation exe     : %s%s \n" % (SW_PATH,sw_snemo_simulation))
     log_file.write("DEBUG : Simulation version :\n \t%s\t%s\t%s\t%s" % (outputlines[5],outputlines[6],outputlines[7],outputlines[8] ) )
+    log_file.write("DEBUG : ***** setup used ******\n")     
+    log_file.write("DEBUG : main setup urn     : %s \n" % urn_used)
     log_file.write("DEBUG : ***** Path used ******\n")     
     log_file.write("DEBUG : SIMU_PATH          : %s \n" % SIMU_PATH)
     log_file.write("DEBUG : prefix_simu_file   : %s \n" % prefix_simu_file)
@@ -315,26 +332,49 @@ def prepare_mc_tree(arg0=None,arg1=None,arg2=None,arg3=None):
     log_file.write("DEBUG : variant file name  : %s \n" % variant_file_name)
     
 
-
-
-    # ############### Start variant GUI to build variant config file #############
-    if debug:
-        print("DEBUG : start variant gui" )
-
-
-    log_file.write('\nCOMMAND : %s/%s -t %s -o %s\n\n' %(SW_PATH,sw_snemo_configuration,urn_blessed_snemo,variant_file_name))    
-    p = subprocess.Popen(args=[' %s/%s -t %s -o %s\n\n' %(SW_PATH,sw_snemo_configuration,urn_blessed_snemo,variant_file_name)],stdout=subprocess.PIPE,stderr=subprocess.STDOUT,shell=True)
-    outputlines = p.stdout.readlines()
-    p.wait()
-    if p.wait() == 1:
-        print ("ERROR : %s : Can not start variant gui ..."%function_name)
-        print ("%s"%outputlines)
-        exit(1)
-    else:
-        log_file.write("DEBUG : variant file done \n")    
+    if gui_mode == True:
+        # ############### Start variant GUI to build variant config file #############
         if debug:
-            print("DEBUG : variant gui done" )
-     #End of variant GUI
+            print("DEBUG : start variant gui" )
+            
+            log_file.write('\nCOMMAND : %s/%s -t %s -o %s\n\n' %(SW_PATH,sw_snemo_configuration,urn_blessed_snemo,variant_file_name))    
+            p = subprocess.Popen(args=[' %s/%s -t %s -o %s\n\n' %(SW_PATH,sw_snemo_configuration,urn_blessed_snemo,variant_file_name)],stdout=subprocess.PIPE,stderr=subprocess.STDOUT,shell=True)
+            outputlines = p.stdout.readlines()
+            p.wait()
+            if p.wait() != 0:
+                print ("ERROR : %s : Can not start variant gui ..."%function_name)
+                print ("%s"%outputlines)
+                exit(1)
+            else:
+                log_file.write("DEBUG : variant file done \n")    
+                if debug:
+                    print("DEBUG : %s : variant gui done"%function_name )
+        #End of variant GUI
+    else:
+        # ############### Start input variant file to prepare config #############
+        if debug:
+            print("DEBUG : use input variant file" )
+            
+        test_variant_file=os.path.isfile(variant_profile)
+        if test_variant_file == False:
+            print("ERROR : %s :  Invalid variant file -> %s "%(function_name,variant_profile))
+            sys.exit(1)
+        else:
+            os.system("cp %s %s"%(variant_profile,variant_file_name))  
+            log_file.write('\nCOMMAND : %s/%s -t %s -i %s --no-gui\n\n' %(SW_PATH,sw_snemo_configuration,urn_blessed_snemo,variant_file_name))    
+            p = subprocess.Popen(args=[' %s/%s -t %s -i %s --no-gui\n\n' %(SW_PATH,sw_snemo_configuration,urn_blessed_snemo,variant_file_name)],stdout=subprocess.PIPE,stderr=subprocess.STDOUT,shell=True)
+            outputlines = p.stdout.readlines()
+            p.wait()
+
+            if p.wait() != 0:
+                print ("ERROR : %s : variant file %s is not a valid config"%(function_name,variant_profile))
+                exit(1)
+            else:
+                log_file.write("INFO  : variant file checked\n")
+                print("INFO  : %s : Input variant file checked"%function_name)
+
+        #End of input variant file
+
 
 
 
@@ -447,40 +487,4 @@ def prepare_mc_tree(arg0=None,arg1=None,arg2=None,arg3=None):
 
 
 
-
-
-
-# def prepare_fill_db(arg1=None,arg2=None,arg3=None):
-    
-#     debug=True
-#     function_name="prepare_fill_db"
-#     if debug:
-#        print ("\nDEBUG : Enter in %s function"%function_name)
-#        print ("DEBUG : --------------------------------------")
-       
-
-#     CURRENT_OUTPUT_PATH = arg1
-#     simu_file_name      = arg2
-#     db_input            = arg3
-
-    
-
-#     check_filename=CURRENT_OUTPUT_PATH+sys_rel_path+launcher_rel_path+JOB_CHECKER
-#     os.system("chmod 777 %s" % check_filename)
-#     check_file = open(check_filename,"a")
-
-#     check_file.write("db_input='%s' \n" %db_input)
-#     check_file.write("\n\
-# if running_iterator == 0 and error_iterator == 0 and success_iterator == iterator:\n\
-#     print ('INFO  : DB updated with : %s' % db_input)\n\
-#     log_file.write('INFO  : DB updated with : %s'%db_input) \n\
-#     client = pyAMI.client.Client('supernemo')\n\
-#     client.execute(db_input)\n\
-# else:\n\
-#     print ('Simulation not finished ! Can not update supernemo DB')\n\
-#     log_file.write('WARNING : Simulation is not finished ! Can not update SuperNEMO DB')\n")
-    
-
-#     check_file.close()
-#     os.system("chmod 555 %s" % check_filename)
 
