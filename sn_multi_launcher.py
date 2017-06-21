@@ -162,7 +162,7 @@ def prepare_launcher(arg1=None,arg2=None,arg3=None,arg4=None, arg5=None, arg6=No
                 seeds_conf_file=None
 
         # Obtain dedicated seed file per simulation file production
-              list_seeds = open(seeds_list_file,"r")
+                list_seeds = open(seeds_list_file,"r")
                 for ligne in list_seeds:
                     seed_number, seed_file = ligne.split()
                     if int(seed_number) == iterator:
