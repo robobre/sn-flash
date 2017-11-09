@@ -1,4 +1,5 @@
-#!/usr/local/python/python-2.7/bin/python
+#!/usr/bin/env python
+
 
 
 # Author  : Y.Lemiere
@@ -12,31 +13,36 @@ import sys
 import os
 import subprocess
 
+import ConfigParser
 
-execfile("sn_simu_env.py")
+##execfile("sn_simu_env.py")
 
-def qsub(arg0=None,arg1=None,arg2=None ):
+def qsub(arg0=None,arg1=None,arg2=None):
 
     debug=True
     name=arg0
     path=arg1
     launch_filename=arg2 
 
+    cfg = ConfigParser.ConfigParser()
+    cfg.read('config.cfg')
+    
+
+    
     if debug:
-        print("DEBUG : JOB                 : %s" % name)
-        print("DEBUG : path                : %s" % path)
-        print("DEBUG : launch_filename     : %s" % launch_filename)
+        print("DEBUG : [%s] : JOB                 : %s" %(qsub.__name__,name))
+        print("DEBUG : [%s] : path                : %s" %(qsub.__name__,path))
+        print("DEBUG : [%s] : launch_filename     : %s" %(qsub.__name__,launch_filename))
         
     
     try:
-        log_path=path+sys_rel_path+log_rel_path+"/"
-        check_file=path+sys_rel_path+"launcher.d/simu_check.py"
+        log_path=path+cfg.get('PRODUCTION_CFG','sys_rel_path')+cfg.get('PRODUCTION_CFG','log_rel_path')+"/"
+        check_file=path+cfg.get('PRODUCTION_CFG','sys_rel_path')+"launcher.d/simu_check.py"
 
-        #        subprocess.call("qsub %s -N %s -v RUN_SIMU_PATH='%s' -e %s -o %s -m e -M lemiere@lpccaen.in2p3.fr %s -af %s" %(SUBMIT_OPTION,name,path,log_path,log_path,launch_filename,check_file), shell=True)
-        subprocess.call("qsub %s -N %s -v RUN_SIMU_PATH='%s' -e %s -o %s -m e -M lemiere@lpccaen.in2p3.fr %s" %(SUBMIT_OPTION,name,path,log_path,log_path,launch_filename), shell=True)
+        subprocess.call("qsub %s -N %s -v RUN_SIMU_PATH='%s' -e %s -o %s -m e -M %s %s" %(cfg.get('BATCH_CFG','submit_option'),name,path,log_path,log_path,cfg.get('USER_CFG','mail_to'),launch_filename), shell=True)
         print("INFO : Job : %s"%launch_filename)
-        print ("=============> %s started ! <============= \n" % name)
+        print ("\033[92=============> %s started ! <============= \033[00m\n" % name)
         
     except:
-        print("ERROR : %s : Can not submit job using qsub at cclyon"%qsub.__name__)
+        print("\033[91mERROR\033[00m : [%s] : Can not submit job using qsub at cclyon"%qsub.__name__)
         sys.exit(1)

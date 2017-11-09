@@ -7,12 +7,13 @@ import sys
 import os
 import subprocess
 import glob
+import ConfigParser
 
 
 ### Simulation launcher
 import cc_job_submitter
 
-execfile("sn_simu_env.py")
+#execfile("sn_simu_env.py")
 
 
 
@@ -20,8 +21,9 @@ def prepare_fill_db(arg1=None,arg2=None,arg3=None):
 
     debug=True
     function_name="prepare_fill_db"
+
     if debug:
-       print ("\nDEBUG : Enter in %s function"%function_name)
+       print ("\nDEBUG : [%s] Enter in function"%function_name)
        print ("DEBUG : --------------------------------------")
 
 
@@ -56,17 +58,117 @@ else:\n\
     check_file.close()
     os.system("chmod 555 %s" % check_filename)
 
+def prepare_reco_launcher(arg0=None,arg1=None):
 
-
-def prepare_launcher(arg1=None,arg2=None,arg3=None,arg4=None, arg5=None, arg6=None):
 
     debug=True
-    function_name="prepare_launcher"
-
+    function_name="prepare_reco_launcher"
 
     if debug:
-       print ("\nDEBUG : Enter in %s function"%function_name)
-       print ("DEBUG : --------------------------------------")
+        print ("DEBUG : --------------------------------------")
+        print ("DEBUG : [%s] : Enter in function using  (%s,%s) "%(function_name,arg0,arg1) )
+
+    
+    snemo_cfg = ConfigParser.ConfigParser()
+    snemo_cfg.read('snemo.cfg')
+
+
+    CURRENT_OUTPUT_PATH = arg0
+    LAUNCH_PATH=CURRENT_OUTPUT_PATH+snemo_cfg.get('PRODUCTION_CFG','sys_rel_path')+snemo_cfg.get('PRODUCTION_CFG','launcher_rel_path')
+    OUT_DATA_PATH=CURRENT_OUTPUT_PATH+snemo_cfg.get('PRODUCTION_CFG','output_rel_path')
+    LOG_PATH=CURRENT_OUTPUT_PATH+snemo_cfg.get('PRODUCTION_CFG','sys_rel_path')+snemo_cfg.get('PRODUCTION_CFG','log_rel_path')
+    SW_PATH=snemo_cfg.get('SW_CFG','sw_path')
+    sw_file=snemo_cfg.get('SW_CFG','sw_snemo_reconstruction')
+    reco_conf_filename = snemo_cfg.get('RECO_CFG','reconstruction_conf')
+    reco_file_name="reco"
+
+
+    #TMP STUFF
+    INPUT_DATA_PATH =  arg1+snemo_cfg.get('PRODUCTION_CFG','output_rel_path')
+
+    if debug:
+        print("DEBUG : [%s] : Check list of input SD files "%function_name)
+    
+    list_of_sd_files=os.listdir(INPUT_DATA_PATH)
+    list_of_brio=[]
+    for el in list_of_sd_files:
+        if el.endswith('.brio'):
+            list_of_brio.append(el)
+
+    if not list_of_brio:
+        print("\033[91mERROR\033[00m : [%s] : No input SD files in :%s"%(function_name,INPUT_DATA_PATH))
+        sys.exit(1)
+                      
+            
+    if debug:
+        print ("DEBUG : [%s] : Prepare stuff for list of input files : \n%s"%(function_name,list_of_brio))
+
+    try:
+
+        iterator = 0
+        for in_file in list_of_brio:
+            
+            iterator = in_file.split("_")[1].split(".")[0]
+            
+            uniq_launch_filename = LAUNCH_PATH+"/launch_"+reco_file_name+"_"+str(iterator)+".sh"
+            uniq_launch =  open(uniq_launch_filename,"w")
+            
+            uniq_short_log_filename = reco_file_name+"_"+str(iterator)+".log"
+            uniq_log                = open(LOG_PATH+"/"+uniq_short_log_filename,"w")
+            
+            
+
+            begin_input_filename    = in_file.split("_")[0]
+            end_input_filename    = in_file.split("_")[1]
+        
+            
+            short_output_filename = reco_file_name+"_"+end_input_filename
+            
+            uniq_log.write("INFO : Prepare script using ${INPUT_DATA_PATH}\n")
+            uniq_log.write("INFO : Up to now, ${INPUT_DATA_PATH}=%s \n"%INPUT_DATA_PATH)
+            uniq_log.write("INFO : Up to now, ${CURRENT_OUTPUT_PATH}=%s \n"%CURRENT_OUTPUT_PATH)
+            uniq_log.write("INFO : 'export CURRENT_OUTPUT_PATH=%s' \n"%CURRENT_OUTPUT_PATH)
+            uniq_log.write("INFO : Ready for uniq job submission, so let's go !\n")
+            uniq_log.close()
+            
+            
+            uniq_launch.write("#!/bin/bash\n")
+            uniq_launch.write("# Author  : Y.Lemiere\n")
+            uniq_launch.write("# Date    : %s\n\n" % datetime.now())
+            uniq_launch.write("# Contact : lemiere@lpccaen.in2p3.fr\n")
+            uniq_launch.write("# Object  : SuperNEMO Uniq Simulation launcher\n\n")
+            
+            uniq_launch.write("\n\n#*************** COMMAND **************\n")
+            uniq_launch.write('%s/%s -i ${CURRENT_OUTPUT_PATH}/%s/%s -o %s -p %s \n' % (SW_PATH,sw_file,snemo_cfg.get('PRODUCTION_CFG','output_rel_path'),in_file,short_output_filename,reco_conf_filename))
+            
+            uniq_launch.write("if [ $? -eq 0 ];\nthen\n echo 'INFO : successfully finished'>>  ${CURRENT_OUTPUT_PATH}/%s/%s\nelse\n  echo 'ERROR : reconstruction failed'>>  ${CURRENT_OUTPUT_PATH}/%s/%s\n exit 1\nfi\n" % (snemo_cfg.get('PRODUCTION_CFG','sys_rel_path')+snemo_cfg.get('PRODUCTION_CFG','log_rel_path'),uniq_short_log_filename,snemo_cfg.get('PRODUCTION_CFG','sys_rel_path')+snemo_cfg.get('PRODUCTION_CFG','log_rel_path'),uniq_short_log_filename))
+            uniq_launch.write("#*************** END OF CMD **************\n\n")
+            
+            uniq_launch.write("mv %s ${CURRENT_OUTPUT_PATH}/%s/%s \n\n" % (short_output_filename,snemo_cfg.get('PRODUCTION_CFG','output_rel_path'),short_output_filename))
+            uniq_launch.write("if [ $? -eq 0 ];\nthen\n echo 'INFO : data copy done'>>  ${CURRENT_OUTPUT_PATH}/%s/%s\nelse\n  echo 'ERROR : data copy failed'>>  ${CURRENT_OUTPUT_PATH}/%s/%s\n exit 1\nfi\n\n" % (snemo_cfg.get('PRODUCTION_CFG','sys_rel_path')+snemo_cfg.get('PRODUCTION_CFG','log_rel_path'),uniq_short_log_filename,snemo_cfg.get('PRODUCTION_CFG','sys_rel_path')+snemo_cfg.get('PRODUCTION_CFG','log_rel_path'),uniq_short_log_filename))
+            
+            uniq_launch.close()
+            os.system("chmod 555 %s" % uniq_launch_filename)
+            
+            
+    except:
+        print("\033[91mERROR\033[00m : [%s] : Do not create sh script successfully"%function_name)
+        sys.exit(1)
+        
+    if debug:
+        print ("DEBUG : --------------------------------------")
+        
+def prepare_simu_launcher(arg1=None,arg2=None,arg3=None,arg4=None, arg5=None, arg6=None):
+
+    debug=True
+    function_name="prepare_simu_launcher"
+    snemo_cfg = ConfigParser.ConfigParser()
+    snemo_cfg.read('snemo.cfg')
+
+    if debug:
+        print ("DEBUG : --------------------------------------")
+        print ("DEBUG : [%s] : Enter in function"%function_name)
+
 
 
     #Argument from sn_simu_mgr_next.py
@@ -77,46 +179,51 @@ def prepare_launcher(arg1=None,arg2=None,arg3=None,arg4=None, arg5=None, arg6=No
     simu_file_name      = arg5
     variant             = arg6
 
+    SW_PATH=snemo_cfg.get('SW_CFG','sw_path')
+    sw_file=snemo_cfg.get('SW_CFG','sw_snemo_simulation')
+
+    
     if debug:
-        print("DEBUG : nb_of_file          : %s" % nb_of_file)
-        print("DEBUG : nb_event            : %s" % nb_event)
-        print("DEBUG : experiment_name     : %s" % experiment_name)
-        print("DEBUG : CURRENT_OUTPUT_PATH : %s" % CURRENT_OUTPUT_PATH)
-        print("DEBUG : simu_file_name      : %s" % simu_file_name)
-        print("DEBUG : variant             : %s" % variant)
+        print("DEBUG : [%s] : nb_of_file          : %s" % (function_name,nb_of_file))
+        print("DEBUG : [%s] : nb_event            : %s" % (function_name,nb_event))
+        print("DEBUG : [%s] : experiment_name     : %s" % (function_name,experiment_name))
+        print("DEBUG : [%s] : CURRENT_OUTPUT_PATH : %s" % (function_name,CURRENT_OUTPUT_PATH))
+        print("DEBUG : [%s] : simu_file_name      : %s" % (function_name,simu_file_name))
+        print("DEBUG : [%s] : variant             : %s" % (function_name,variant))
 
         ### To change
 
 
         ###  ./config direactory
-    MAIN_CONFIG_PATH=CURRENT_OUTPUT_PATH+config_rel_path
-    SEEDS_PATH= MAIN_CONFIG_PATH+seed_rel_path
-    VARIANT_PATH=MAIN_CONFIG_PATH+variant_rel_path
+    MAIN_CONFIG_PATH=CURRENT_OUTPUT_PATH+snemo_cfg.get('PRODUCTION_CFG','config_rel_path')
+    SEEDS_PATH= MAIN_CONFIG_PATH+snemo_cfg.get('PRODUCTION_CFG','seed_rel_path')
+    VARIANT_PATH=MAIN_CONFIG_PATH+snemo_cfg.get('PRODUCTION_CFG','variant_rel_path')
 
-    CONF_PATH=MAIN_CONFIG_PATH+conf_rel_path
-    REL_CONF_PATH=config_rel_path+conf_rel_path
+    CONF_PATH=MAIN_CONFIG_PATH+snemo_cfg.get('PRODUCTION_CFG','conf_rel_path')
+    #REL_CONF_PATH=config_rel_path+conf_rel_path
         #### ./.sys directory
-    CURRENT_SYS_PATH=CURRENT_OUTPUT_PATH+sys_rel_path
-
-    LOG_PATH=CURRENT_SYS_PATH+log_rel_path
-    REL_LOG_PATH=sys_rel_path+log_rel_path
-
+    CURRENT_SYS_PATH=CURRENT_OUTPUT_PATH+snemo_cfg.get('PRODUCTION_CFG','sys_rel_path')
+    LOG_PATH=CURRENT_SYS_PATH+snemo_cfg.get('PRODUCTION_CFG','log_rel_path')
+    #REL_LOG_PATH=sys_rel_path+log_rel_path
 
 
-    LAUNCHER_PATH=CURRENT_SYS_PATH+launcher_rel_path
+
+    LAUNCHER_PATH=CURRENT_SYS_PATH+snemo_cfg.get('PRODUCTION_CFG','launcher_rel_path')
     #### ./output directory
-    CURRENT_OUTDATA_PATH=CURRENT_OUTPUT_PATH+output_rel_path
-    CURRENT_METADATA_PATH=CURRENT_OUTPUT_PATH+output_rel_path
+    CURRENT_OUTDATA_PATH  = CURRENT_OUTPUT_PATH+snemo_cfg.get('PRODUCTION_CFG','output_rel_path')
+    CURRENT_METADATA_PATH = CURRENT_OUTDATA_PATH
 
+    JOB_CHECKER="/simu_check.py"
 
+    
     try:
         log_file_name=LOG_PATH+"/main"+".log"
-        short_log_file_name=REL_LOG_PATH+"/main"+".log"
+        short_log_file_name=snemo_cfg.get('PRODUCTION_CFG','sys_rel_path')+snemo_cfg.get('PRODUCTION_CFG','log_rel_path')+"/main"+".log"
         log_file = open(log_file_name,"a")
         log_file.write("INFO : Up to now, ${RUN_SIMU_PATH}=%s \n"%CURRENT_OUTPUT_PATH)
 
         check_filename=LAUNCHER_PATH+JOB_CHECKER
-        short_check_filename=sys_rel_path+launcher_rel_path+JOB_CHECKER
+        short_check_filename=snemo_cfg.get('PRODUCTION_CFG','sys_rel_path')+snemo_cfg.get('PRODUCTION_CFG','launcher_rel_path')+JOB_CHECKER
         check_file = open(check_filename,"w")
 
         check_file.write("#!/usr/local/python/python-2.7/bin/python\n\n")
@@ -135,25 +242,25 @@ def prepare_launcher(arg1=None,arg2=None,arg3=None,arg4=None, arg5=None, arg6=No
 
 
         if debug:
-            print("DEBUG : %s : Ready to loop for shell script production"%function_name)
+            print("DEBUG : [%s] : Ready to loop for shell script production"%function_name)
 
     # create individual script per simulation file production
             iterator=0
             for iterator in range(int(nb_of_file)):
                 #         ## To change
-                log_file.write("DEBUG : %s : create launcher for file %s/%s\n"%(function_name,iterator,nb_of_file))
+                log_file.write("DEBUG : [%s] : create launcher for file %s/%s\n"%(function_name,iterator,nb_of_file))
 
                 ###### ici
                 simu_file_name="file"
                 uniq_log_filename = LOG_PATH+"/"+simu_file_name+"_"+str(iterator)+".log"
-                uniq_short_log_filename = REL_LOG_PATH+"/"+simu_file_name+"_"+str(iterator)+".log"
+                uniq_short_log_filename = snemo_cfg.get('PRODUCTION_CFG','sys_rel_path')+snemo_cfg.get('PRODUCTION_CFG','log_rel_path')+"/"+simu_file_name+"_"+str(iterator)+".log"
 
 
                 uniq_short_launch_filename = "/launch_"+simu_file_name+"_"+str(iterator)+".sh"
                 uniq_launch_filename = LAUNCHER_PATH+uniq_short_launch_filename
 
                 uniq_config_launch_filename= CONF_PATH+"/launch_"+simu_file_name+"_"+str(iterator)+".conf"
-                uniq_short_config_filename= REL_CONF_PATH+"/launch_"+simu_file_name+"_"+str(iterator)+".conf"
+                uniq_short_config_filename= snemo_cfg.get('PRODUCTION_CFG','config_rel_path')+snemo_cfg.get('PRODUCTION_CFG','conf_rel_path')+"/launch_"+simu_file_name+"_"+str(iterator)+".conf"
                 uniq_log    =  open(uniq_log_filename,"w")
                 uniq_launch =  open(uniq_launch_filename,"w")
                 uniq_config =  open(uniq_config_launch_filename,"w")
@@ -194,7 +301,7 @@ def prepare_launcher(arg1=None,arg2=None,arg3=None,arg4=None, arg5=None, arg6=No
                 uniq_config.write('#@config Simulation setup\n\n')
 
                 uniq_config.write('#@description URN of the simulation setup (registered)\n')
-                uniq_config.write('simulationSetupUrn : string = "%s"\n\n'%urn_blessed_snemo)
+                uniq_config.write('simulationSetupUrn : string = "%s"\n\n'%snemo_cfg.get('SIMU_CFG','urn_blessed_snemo'))
 
                 uniq_config.write('#@description File with input seeds for embedded random number generators\n')
                 uniq_config.write('rngSeedFile : string as path = "@sys_path:config.d/seeds.d/%s"\n\n'%seeds_conf_file)
@@ -214,8 +321,8 @@ def prepare_launcher(arg1=None,arg2=None,arg3=None,arg4=None, arg5=None, arg6=No
                 short_output_filename = simu_file_name+"_"+str(iterator)+".brio"
                 short_metadata_filename = simu_file_name+"_"+str(iterator)+".meta"
 
-                uniq_output_filename = output_rel_path+"/"+short_output_filename
-                uniq_metadata_filename = output_rel_path+"/"+short_metadata_filename
+                uniq_output_filename   = snemo_cfg.get('PRODUCTION_CFG','output_rel_path')+"/"+short_output_filename
+                uniq_metadata_filename = snemo_cfg.get('PRODUCTION_CFG','output_rel_path')+"/"+short_metadata_filename
 
         #Shell script for job submission
                 uniq_launch.write("#!/bin/bash\n")
@@ -231,7 +338,7 @@ def prepare_launcher(arg1=None,arg2=None,arg3=None,arg4=None, arg5=None, arg6=No
                 uniq_launch.write("date >>  ${RUN_SIMU_PATH}/%s " %uniq_short_log_filename)
                 uniq_launch.write("\n\n#*************** COMMAND **************\n")
 
-                uniq_launch.write('%s%s  -d "sys_path.resources@${RUN_SIMU_PATH}" -o %s -c @sys_path:%s -m %s \n' % (SW_PATH,sw_snemo_simulation,short_output_filename,uniq_short_config_filename,short_metadata_filename))
+                uniq_launch.write('%s/%s  -d "sys_path.resources@${RUN_SIMU_PATH}" -o %s -c @sys_path:%s -m %s \n' % (SW_PATH,sw_file,short_output_filename,uniq_short_config_filename,short_metadata_filename))
 
                 uniq_launch.write("if [ $? -eq 0 ];\nthen\n echo 'INFO : successfully finished'>>  ${RUN_SIMU_PATH}/%s\nelse\n  echo 'ERROR : simulation failed'>>  ${RUN_SIMU_PATH}/%s\n exit 1\nfi\n" % (uniq_short_log_filename,uniq_short_log_filename))
                 uniq_launch.write("#*************** END OF CMD **************\n\n")
@@ -251,7 +358,7 @@ def prepare_launcher(arg1=None,arg2=None,arg3=None,arg4=None, arg5=None, arg6=No
                 #End of Shell script
                 job_name="job_"+simu_file_name+"_"+str(iterator)
                 #job_path=CURRENT_SYS_PATH
-                log_file.write("JOB %s job_name %s uniq_launch_filename %s\n"%(iterator,job_name,uniq_short_launch_filename))
+                log_file.write("INFO : [%s] : JOB %s job_name %s uniq_launch_filename %s\n"%(function_name,iterator,job_name,uniq_short_launch_filename))
 
 
 
@@ -296,13 +403,13 @@ else:\n\
 ")
 
 
-        log_file.write("DEBUG : %s : All uniq launcher done successfully "%function_name)
+        log_file.write("DEBUG : [%s] : All uniq launcher done successfully "%function_name)
 
         check_file.write("print('INFO  : running : %s / %s' % (running_iterator,iterator))\n")
         check_file.write("print('INFO  : error   : %s /%s'  %(error_iterator,iterator))\n")
         check_file.write("print('INFO  : success   : %s /%s'  %(success_iterator,iterator))\n\n")
 
-        check_file.write("log_filename=RUN_SIMU_PATH+'/%s' \n" % (short_log_file_name))
+        check_file.write("log_filename=RUN_SIMU_PATH+'%s' \n" % (short_log_file_name))
         check_file.write("log_file=open(log_filename,'a') \n")
         check_file.write("log_file.write('INFO  : running :  %s / %s \\n'  %(running_iterator,iterator)) \n")
         check_file.write("log_file.write('INFO  : error :  %s / %s \\n'    %(error_iterator,iterator))\n")
@@ -335,7 +442,7 @@ else:\n\
         os.system("chmod 555 %s" % check_filename)
 
     except:
-        print("ERROR : %s : Do not create sh script successfully"%function_name)
+        print("\033[91mERROR\033[00m : [%s] : Do not create sh script successfully"%function_name)
         sys.exit(1)
 
     #log_file.write("INFO : Prepare launcher finished, ready to process")
