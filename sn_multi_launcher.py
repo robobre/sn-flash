@@ -220,7 +220,7 @@ def prepare_simu_launcher(arg1=None,arg2=None,arg3=None,arg4=None, arg5=None, ar
         log_file_name=LOG_PATH+"/main"+".log"
         short_log_file_name=snemo_cfg.get('PRODUCTION_CFG','sys_rel_path')+snemo_cfg.get('PRODUCTION_CFG','log_rel_path')+"/main"+".log"
         log_file = open(log_file_name,"a")
-        log_file.write("INFO : Up to now, ${RUN_SIMU_PATH}=%s \n"%CURRENT_OUTPUT_PATH)
+        log_file.write("INFO : Up to now, ${WORKING_PATH}=%s \n"%CURRENT_OUTPUT_PATH)
 
         check_filename=LAUNCHER_PATH+JOB_CHECKER
         short_check_filename=snemo_cfg.get('PRODUCTION_CFG','sys_rel_path')+snemo_cfg.get('PRODUCTION_CFG','launcher_rel_path')+JOB_CHECKER
@@ -237,7 +237,7 @@ def prepare_simu_launcher(arg1=None,arg2=None,arg3=None,arg4=None, arg5=None, ar
         check_file.write("import pyAMI.client\n")
         check_file.write("import pyAMI_supernemo\n\n\n")
 
-        check_file.write("RUN_SIMU_PATH=os.environ['RUN_SIMU_PATH']\n")
+        check_file.write("WORKING_PATH=os.environ['WORKING_PATH']\n")
         check_file.write("iterator=0 \nrunning_iterator=0\nerror_iterator=0\nsuccess_iterator=0\n\n")
 
 
@@ -331,25 +331,27 @@ def prepare_simu_launcher(arg1=None,arg2=None,arg3=None,arg4=None, arg5=None, ar
                 uniq_launch.write("# Contact : lemiere@lpccaen.in2p3.fr\n")
                 uniq_launch.write("# Object  : SuperNEMO Uniq Simulation launcher\n\n")
 
-                uniq_launch.write("if [ -n '$RUN_SIMU_PATH' ];\nthen\n echo 'INFO : RUN_SIMU_PATH exist'>>  ${RUN_SIMU_PATH}/%s\nelse\n  echo 'ERROR : RUN_SIMU_PATH is empty'\n exit 1\nfi\n" % (uniq_short_log_filename))
+                uniq_launch.write("echo '*************** $WORKING_PATH **************'\n")
+
+                uniq_launch.write("if [ -n '$WORKING_PATH' ];\nthen\n echo 'INFO : WORKING_PATH exist'>>  ${WORKING_PATH}/%s\nelse\n  echo 'ERROR : WORKING_PATH is empty'\n exit 1\nfi\n" % (uniq_short_log_filename))
 
 
-                #uniq_launch.write("RUN_SIMU_PATH=$1 \n")
-                uniq_launch.write("date >>  ${RUN_SIMU_PATH}/%s " %uniq_short_log_filename)
+                #uniq_launch.write("WORKING_PATH=$1 \n")
+                uniq_launch.write("date >>  ${WORKING_PATH}/%s " %uniq_short_log_filename)
                 uniq_launch.write("\n\n#*************** COMMAND **************\n")
 
-                uniq_launch.write('%s/%s  -d "sys_path.resources@${RUN_SIMU_PATH}" -o %s -c @sys_path:%s -m %s \n' % (SW_PATH,sw_file,short_output_filename,uniq_short_config_filename,short_metadata_filename))
+                uniq_launch.write('%s/%s  -d "sys_path.resources@${WORKING_PATH}" -o %s -c @sys_path:%s -m %s \n' % (SW_PATH,sw_file,short_output_filename,uniq_short_config_filename,short_metadata_filename))
 
-                uniq_launch.write("if [ $? -eq 0 ];\nthen\n echo 'INFO : successfully finished'>>  ${RUN_SIMU_PATH}/%s\nelse\n  echo 'ERROR : simulation failed'>>  ${RUN_SIMU_PATH}/%s\n exit 1\nfi\n" % (uniq_short_log_filename,uniq_short_log_filename))
+                uniq_launch.write("if [ $? -eq 0 ];\nthen\n echo 'INFO : successfully finished'>>  ${WORKING_PATH}/%s\nelse\n  echo 'ERROR : simulation failed'>>  ${WORKING_PATH}/%s\n exit 1\nfi\n" % (uniq_short_log_filename,uniq_short_log_filename))
                 uniq_launch.write("#*************** END OF CMD **************\n\n")
 
-                uniq_launch.write("mv %s ${RUN_SIMU_PATH}/%s \n\n" % (short_output_filename,uniq_output_filename) )
-                uniq_launch.write("if [ $? -eq 0 ];\nthen\n echo 'INFO : data copy done'>>  ${RUN_SIMU_PATH}/%s\nelse\n  echo 'ERROR : data copy failed'>>  ${RUN_SIMU_PATH}/%s\n exit 1\nfi\n\n" % (uniq_short_log_filename,uniq_short_log_filename))
+                uniq_launch.write("mv %s ${WORKING_PATH}/%s \n\n" % (short_output_filename,uniq_output_filename) )
+                uniq_launch.write("if [ $? -eq 0 ];\nthen\n echo 'INFO : data copy done'>>  ${WORKING_PATH}/%s\nelse\n  echo 'ERROR : data copy failed'>>  ${WORKING_PATH}/%s\n exit 1\nfi\n\n" % (uniq_short_log_filename,uniq_short_log_filename))
 
-                uniq_launch.write("mv %s ${RUN_SIMU_PATH}/%s \n\n" % (short_metadata_filename,uniq_metadata_filename) )
-                uniq_launch.write("if [ $? -eq 0 ];\nthen\n echo 'INFO : metadata copy done'>>  ${RUN_SIMU_PATH}/%s\nelse\n  echo 'ERROR : metadata copy failed'>> ${RUN_SIMU_PATH}/%s\n exit 1\nfi\n\n" % (uniq_short_log_filename,uniq_short_log_filename))
+                uniq_launch.write("mv %s ${WORKING_PATH}/%s \n\n" % (short_metadata_filename,uniq_metadata_filename) )
+                uniq_launch.write("if [ $? -eq 0 ];\nthen\n echo 'INFO : metadata copy done'>>  ${WORKING_PATH}/%s\nelse\n  echo 'ERROR : metadata copy failed'>> ${WORKING_PATH}/%s\n exit 1\nfi\n\n" % (uniq_short_log_filename,uniq_short_log_filename))
 
-                uniq_launch.write("python ${RUN_SIMU_PATH}/%s \n"%short_check_filename)
+                uniq_launch.write("python ${WORKING_PATH}/%s \n"%short_check_filename)
                 uniq_launch.write("echo queue : $QUEUE\n")
                 uniq_launch.write("echo job : $JOB_ID\n")
 
@@ -363,8 +365,8 @@ def prepare_simu_launcher(arg1=None,arg2=None,arg3=None,arg4=None, arg5=None, ar
 
 
 
-                uniq_log.write("INFO : Prepare script using ${RUN_SIMU_PATH}\n")
-                uniq_log.write("INFO : Up to now, ${RUN_SIMU_PATH}=%s \n"%CURRENT_OUTPUT_PATH)
+                uniq_log.write("INFO : Prepare script using ${WORKING_PATH}\n")
+                uniq_log.write("INFO : Up to now, ${WORKING_PATH}=%s \n"%CURRENT_OUTPUT_PATH)
                 uniq_log.write("INFO : Ready for uniq job submission, so let's go !\n")
                 uniq_log.close()
 
@@ -372,7 +374,7 @@ def prepare_simu_launcher(arg1=None,arg2=None,arg3=None,arg4=None, arg5=None, ar
 
                 check_file.write("iterator=iterator+1\n")
                 check_file.write("job_name='%s' \n" %job_name)
-                check_file.write("uniq_log_filename=RUN_SIMU_PATH+'/%s' \n" %(uniq_short_log_filename))
+                check_file.write("uniq_log_filename=WORKING_PATH+'/%s' \n" %(uniq_short_log_filename))
                 check_file.write("result=os.system('qstat -j %s > /dev/null 2>&1' % job_name)\n")
                 check_file.write("\
 if result != 0:\n\
@@ -409,7 +411,7 @@ else:\n\
         check_file.write("print('INFO  : error   : %s /%s'  %(error_iterator,iterator))\n")
         check_file.write("print('INFO  : success   : %s /%s'  %(success_iterator,iterator))\n\n")
 
-        check_file.write("log_filename=RUN_SIMU_PATH+'%s' \n" % (short_log_file_name))
+        check_file.write("log_filename=WORKING_PATH+'%s' \n" % (short_log_file_name))
         check_file.write("log_file=open(log_filename,'a') \n")
         check_file.write("log_file.write('INFO  : running :  %s / %s \\n'  %(running_iterator,iterator)) \n")
         check_file.write("log_file.write('INFO  : error :  %s / %s \\n'    %(error_iterator,iterator))\n")

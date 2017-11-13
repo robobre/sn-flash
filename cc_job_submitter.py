@@ -24,6 +24,8 @@ def qsub(arg0=None,arg1=None,arg2=None):
     path=arg1
     launch_filename=arg2 
 
+
+    
     snemo_cfg = ConfigParser.ConfigParser()
     snemo_cfg.read('snemo.cfg')
     
@@ -40,7 +42,7 @@ def qsub(arg0=None,arg1=None,arg2=None):
         log_path=path+snemo_cfg.get('PRODUCTION_CFG','sys_rel_path')+snemo_cfg.get('PRODUCTION_CFG','log_rel_path')+"/"
         check_file=path+snemo_cfg.get('PRODUCTION_CFG','sys_rel_path')+snemo_cfg.get('PRODUCTION_CFG','launcher_rel_path')+"/simu_check.py"
 
-        subprocess.call("qsub %s -N %s -v RUN_SIMU_PATH='%s' -e %s -o %s -m e -M %s %s" %(snemo_cfg.get('BATCH_CFG','submit_option'),name,path,log_path,log_path,usr_cfg.get('USER_CFG','mail_to'),launch_filename), shell=True)
+        subprocess.call("qsub %s -N %s -v WORKING_PATH='%s' -e %s -o %s -m e -M %s %s" %(snemo_cfg.get('BATCH_CFG','submit_option'),name,path,log_path,log_path,usr_cfg.get('USER_CFG','mail_to'),launch_filename), shell=True)
         print("INFO : Job : %s"%launch_filename)
         print ("\033[92=============> %s started ! <============= \033[00m\n" % name)
         
