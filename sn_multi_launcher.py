@@ -139,13 +139,13 @@ def prepare_reco_launcher(arg0=None,arg1=None):
             uniq_launch.write("# Object  : SuperNEMO Uniq Simulation launcher\n\n")
             
             uniq_launch.write("\n\n#*************** COMMAND **************\n")
-            uniq_launch.write('%s/%s -i ${CURRENT_OUTPUT_PATH}/%s/%s -o %s -p %s \n' % (SW_PATH,sw_file,snemo_cfg.get('PRODUCTION_CFG','output_rel_path'),in_file,short_output_filename,reco_conf_filename))
+            uniq_launch.write('%s/%s -i ${INPUT_DATA_PATH}/%s/%s -o %s -p %s \n' % (SW_PATH,sw_file,snemo_cfg.get('PRODUCTION_CFG','output_rel_path'),in_file,short_output_filename,reco_conf_filename))
             
-            uniq_launch.write("if [ $? -eq 0 ];\nthen\n echo 'INFO : successfully finished'>>  ${CURRENT_OUTPUT_PATH}/%s/%s\nelse\n  echo 'ERROR : reconstruction failed'>>  ${CURRENT_OUTPUT_PATH}/%s/%s\n exit 1\nfi\n" % (snemo_cfg.get('PRODUCTION_CFG','sys_rel_path')+snemo_cfg.get('PRODUCTION_CFG','log_rel_path'),uniq_short_log_filename,snemo_cfg.get('PRODUCTION_CFG','sys_rel_path')+snemo_cfg.get('PRODUCTION_CFG','log_rel_path'),uniq_short_log_filename))
+            uniq_launch.write("if [ $? -eq 0 ];\nthen\n echo 'INFO : successfully finished'>>  ${WORKING_PATH}/%s/%s\nelse\n  echo 'ERROR : reconstruction failed'>>  ${WORKING_PATH}/%s/%s\n exit 1\nfi\n" % (snemo_cfg.get('PRODUCTION_CFG','sys_rel_path')+snemo_cfg.get('PRODUCTION_CFG','log_rel_path'),uniq_short_log_filename,snemo_cfg.get('PRODUCTION_CFG','sys_rel_path')+snemo_cfg.get('PRODUCTION_CFG','log_rel_path'),uniq_short_log_filename))
             uniq_launch.write("#*************** END OF CMD **************\n\n")
             
-            uniq_launch.write("mv %s ${CURRENT_OUTPUT_PATH}/%s/%s \n\n" % (short_output_filename,snemo_cfg.get('PRODUCTION_CFG','output_rel_path'),short_output_filename))
-            uniq_launch.write("if [ $? -eq 0 ];\nthen\n echo 'INFO : data copy done'>>  ${CURRENT_OUTPUT_PATH}/%s/%s\nelse\n  echo 'ERROR : data copy failed'>>  ${CURRENT_OUTPUT_PATH}/%s/%s\n exit 1\nfi\n\n" % (snemo_cfg.get('PRODUCTION_CFG','sys_rel_path')+snemo_cfg.get('PRODUCTION_CFG','log_rel_path'),uniq_short_log_filename,snemo_cfg.get('PRODUCTION_CFG','sys_rel_path')+snemo_cfg.get('PRODUCTION_CFG','log_rel_path'),uniq_short_log_filename))
+            uniq_launch.write("mv %s ${WORKING_PATH}/%s/%s \n\n" % (short_output_filename,snemo_cfg.get('PRODUCTION_CFG','output_rel_path'),short_output_filename))
+            uniq_launch.write("if [ $? -eq 0 ];\nthen\n echo 'INFO : data copy done'>>  ${WORKING_PATH}/%s/%s\nelse\n  echo 'ERROR : data copy failed'>>  ${WORKING_PATH}/%s/%s\n exit 1\nfi\n\n" % (snemo_cfg.get('PRODUCTION_CFG','sys_rel_path')+snemo_cfg.get('PRODUCTION_CFG','log_rel_path'),uniq_short_log_filename,snemo_cfg.get('PRODUCTION_CFG','sys_rel_path')+snemo_cfg.get('PRODUCTION_CFG','log_rel_path'),uniq_short_log_filename))
             
             uniq_launch.close()
             os.system("chmod 555 %s" % uniq_launch_filename)
@@ -331,9 +331,7 @@ def prepare_simu_launcher(arg1=None,arg2=None,arg3=None,arg4=None, arg5=None, ar
                 uniq_launch.write("# Contact : lemiere@lpccaen.in2p3.fr\n")
                 uniq_launch.write("# Object  : SuperNEMO Uniq Simulation launcher\n\n")
 
-                uniq_launch.write("echo '*************** $WORKING_PATH **************'\n")
-
-                uniq_launch.write("if [ -n '$WORKING_PATH' ];\nthen\n echo 'INFO : WORKING_PATH exist'>>  ${WORKING_PATH}/%s\nelse\n  echo 'ERROR : WORKING_PATH is empty'\n exit 1\nfi\n" % (uniq_short_log_filename))
+                uniq_launch.write("if [ -n '$WORKING_PATH' ];\nthen\n echo 'INFO : WORKING_PATH exist : ' ${WORKING_PATH} >>  ${WORKING_PATH}/%s\nelse\n  echo 'ERROR : WORKING_PATH is empty'\n exit 1\nfi\n" % (uniq_short_log_filename))
 
 
                 #uniq_launch.write("WORKING_PATH=$1 \n")
