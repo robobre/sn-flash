@@ -13,7 +13,7 @@ import os
 import subprocess
 
 
-import sn_simu_mgr_next
+
 import sn_tree_mgr
 
 def usage():
@@ -195,7 +195,7 @@ if __name__ == '__main__':
         try: 
             print("DEBUG : [%s] : Store simulation tarball on HPSS@CCLYON" % APP_NAME)
             FARM_LOCATION="CCLYON"
-            sn_simu_mgr_next.publish_production(input_data_path,simulation, production)
+            #sn_simu_mgr_next.publish_production(input_data_path,simulation, production)
             #sn_simu_mgr_next.prepare_tarball(input_data_path)
             #sn_simu_mgr_next.store(input_data_path,FARM_LOCATION,production)
         except:
