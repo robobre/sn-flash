@@ -25,7 +25,7 @@ def qsub(arg0=None,arg1=None,arg2=None):
     launch_filename=arg2 
 
     cfg = ConfigParser.ConfigParser()
-    cfg.read('config.cfg')
+    cfg.read('snemo.cfg')
     
 
     
