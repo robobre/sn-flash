@@ -139,7 +139,7 @@ def prepare_reco_launcher(arg0=None,arg1=None):
             uniq_launch.write("# Object  : SuperNEMO Uniq Simulation launcher\n\n")
             
             uniq_launch.write("\n\n#*************** COMMAND **************\n")
-            uniq_launch.write('%s/%s -i %s/%s/%s -o %s -p %s \n' % (SW_PATH,sw_file,INPUT_DATA_PATH,snemo_cfg.get('PRODUCTION_CFG','output_rel_path'),in_file,short_output_filename,reco_conf_filename))
+            uniq_launch.write('%s/%s -i %s/%s -o %s -p %s \n' % (SW_PATH,sw_file,INPUT_DATA_PATH,in_file,short_output_filename,reco_conf_filename))
             
             uniq_launch.write("if [ $? -eq 0 ];\nthen\n echo 'INFO : successfully finished'>>  ${WORKING_PATH}/%s/%s\nelse\n  echo 'ERROR : reconstruction failed'>>  ${WORKING_PATH}/%s/%s\n exit 1\nfi\n" % (snemo_cfg.get('PRODUCTION_CFG','sys_rel_path')+snemo_cfg.get('PRODUCTION_CFG','log_rel_path'),uniq_short_log_filename,snemo_cfg.get('PRODUCTION_CFG','sys_rel_path')+snemo_cfg.get('PRODUCTION_CFG','log_rel_path'),uniq_short_log_filename))
             uniq_launch.write("#*************** END OF CMD **************\n\n")
