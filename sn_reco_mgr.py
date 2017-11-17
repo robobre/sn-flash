@@ -259,6 +259,7 @@ def prepare_files(arg0=None,arg1=None):
     function_name = "prepare_files"
 
     if debug:
+        print ("DEBUG : *************************************")
         print ("DEBUG : [%s] : Prepare files for reconstruction purpose using (%s, %s) "%(function_name,arg0,arg1) )
 
     CURRENT_OUTPUT_PATH = arg0
@@ -288,7 +289,7 @@ def prepare_files(arg0=None,arg1=None):
         
     if debug:
         print("DEBUG : [%s] : shell script production done !"%function_name )
-
+        print("DEBUG : *************************************")
     
 
 

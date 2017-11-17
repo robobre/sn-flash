@@ -63,16 +63,16 @@ def prepare_reco_launcher(arg0=None,arg1=None):
 
     debug=True
     function_name="prepare_reco_launcher"
+    snemo_cfg = ConfigParser.ConfigParser()
+    snemo_cfg.read('snemo.cfg')
 
+    
     if debug:
         print ("DEBUG : --------------------------------------")
         print ("DEBUG : [%s] : Enter in function using  (%s,%s) "%(function_name,arg0,arg1) )
 
+  
     
-    snemo_cfg = ConfigParser.ConfigParser()
-    snemo_cfg.read('snemo.cfg')
-
-
     CURRENT_OUTPUT_PATH = arg0
     LAUNCH_PATH=CURRENT_OUTPUT_PATH+snemo_cfg.get('PRODUCTION_CFG','sys_rel_path')+snemo_cfg.get('PRODUCTION_CFG','launcher_rel_path')
     OUT_DATA_PATH=CURRENT_OUTPUT_PATH+snemo_cfg.get('PRODUCTION_CFG','output_rel_path')
@@ -80,7 +80,7 @@ def prepare_reco_launcher(arg0=None,arg1=None):
     SW_PATH=snemo_cfg.get('SW_CFG','sw_path')
     sw_file=snemo_cfg.get('SW_CFG','sw_snemo_reconstruction')
     reco_conf_filename = snemo_cfg.get('RECO_CFG','reconstruction_conf')
-    reco_file_name="reco"
+    reco_file_name="file"
 
 
     #TMP STUFF
@@ -102,11 +102,32 @@ def prepare_reco_launcher(arg0=None,arg1=None):
             
     if debug:
         print ("DEBUG : [%s] : Prepare stuff for list of input files : \n%s"%(function_name,list_of_brio))
-
+        
+    JOB_CHECKER="/check.py"
+    
     try:
+        log_file_name=LOG_PATH+"/main"+".log"
+        check_filename=LAUNCH_PATH+JOB_CHECKER
+        check_file = open(check_filename,"w")
+        check_file.write("#!/usr/local/python/python-2.7/bin/python\n\n")
+        check_file.write("# Author  : Y.Lemiere \n")
+        check_file.write("# Date    : 2016/07 \n")
+        check_file.write("# Contact : lemiere@lpccaen.in2p3.fr\n")
+        check_file.write("# Object  : SuperNEMO Simulation check\n")
 
+        check_file.write("# Create this file automatically from %s at %s \n\n" % (function_name,datetime.now()))
+        check_file.write("import sys\nimport tarfile\nimport os\n\n\n")
+        check_file.write("import pyAMI.client\n")
+        check_file.write("import pyAMI_supernemo\n\n\n")
+
+        check_file.write("WORKING_PATH=os.environ['WORKING_PATH']\n")
+        check_file.write("iterator=0 \nrunning_iterator=0\nerror_iterator=0\nsuccess_iterator=0\n\n")
+        
         iterator = 0
         for in_file in list_of_brio:
+
+            if debug:
+                print ("DEBUG : [%s] : Prepare shell script file #%s"%(function_name,iterator))
             
             iterator = in_file.split("_")[1].split(".")[0]
             
@@ -123,6 +144,7 @@ def prepare_reco_launcher(arg0=None,arg1=None):
         
             
             short_output_filename = reco_file_name+"_"+end_input_filename
+            job_name="job_"+reco_file_name+"_"+str(iterator)
             
             uniq_log.write("INFO : Prepare script using ${INPUT_DATA_PATH}\n")
             uniq_log.write("INFO : Up to now, ${INPUT_DATA_PATH}=%s \n"%INPUT_DATA_PATH)
@@ -131,6 +153,41 @@ def prepare_reco_launcher(arg0=None,arg1=None):
             uniq_log.write("INFO : Ready for uniq job submission, so let's go !\n")
             uniq_log.close()
             
+
+            check_file.write("iterator=iterator+1\n")
+            check_file.write("job_name='%s' \n" %job_name)
+            check_file.write("uniq_log_filename=WORKING_PATH+'/%s/%s' \n" %(snemo_cfg.get('PRODUCTION_CFG','sys_rel_path')+snemo_cfg.get('PRODUCTION_CFG','log_rel_path'),uniq_short_log_filename))
+            check_file.write("result=os.system('qstat -j %s > /dev/null 2>&1' % job_name)\n")
+            check_file.write("\
+if result != 0:\n\
+   print ('INFO  : %s finished' % job_name)\n\
+else:\n\
+   print ('WARNING : %s not yet finished' % job_name)\n\
+   running_iterator=running_iterator+1\n\n\
+")
+
+            check_file.write("grep_result=os.system('grep successfully %s > /dev/null' % uniq_log_filename)\n")
+            check_file.write("\
+if grep_result != 0:\n\
+   print ('WARNING  : %s not running but no sucess' % job_name)\n\
+   #running_iterator=running_iterator+1\n\
+else:\n\
+   print ('INFO  : %s  successfully finished' % job_name)\n\
+   success_iterator=success_iterator+1\n\
+")
+
+            check_file.write("grep_result=os.system('grep failed %s > /dev/null' % uniq_log_filename)\n")
+            check_file.write("\
+if grep_result != 0:\n\
+   print ('INFO  : %s no error found' % job_name)\n\
+   #running_iterator=running_iterator+1\n\
+else:\n\
+   print ('WARNING : %s  FAILED' % job_name)\n\
+   error_iterator=error_iterator+1\n\n\
+")
+
+
+
             
             uniq_launch.write("#!/bin/bash\n")
             uniq_launch.write("# Author  : Y.Lemiere\n")
@@ -150,7 +207,20 @@ def prepare_reco_launcher(arg0=None,arg1=None):
             uniq_launch.close()
             os.system("chmod 555 %s" % uniq_launch_filename)
             
-            
+
+        check_file.write("print('INFO  : running : %s / %s' % (running_iterator,iterator))\n")
+        check_file.write("print('INFO  : error   : %s /%s'  %(error_iterator,iterator))\n")
+        check_file.write("print('INFO  : success   : %s /%s'  %(success_iterator,iterator))\n\n")
+
+        check_file.write("log_filename='%s' \n" % (log_file_name))
+        check_file.write("log_file=open(log_filename,'a') \n")
+        check_file.write("log_file.write('INFO  : running :  %s / %s \\n'  %(running_iterator,iterator)) \n")
+        check_file.write("log_file.write('INFO  : error :  %s / %s \\n'    %(error_iterator,iterator))\n")
+        check_file.write("log_file.write('INFO  : success :  %s / %s \\n'  %(success_iterator,iterator))\n\n")
+
+        check_file.close()
+        os.system("chmod 555 %s" % check_filename)
+        
     except:
         print("\033[91mERROR\033[00m : [%s] : Do not create sh script successfully"%function_name)
         sys.exit(1)
@@ -194,17 +264,17 @@ def prepare_simu_launcher(arg1=None,arg2=None,arg3=None,arg4=None, arg5=None, ar
         ### To change
 
 
-        ###  ./config direactory
+    ###  ./config direactory
     MAIN_CONFIG_PATH=CURRENT_OUTPUT_PATH+snemo_cfg.get('PRODUCTION_CFG','config_rel_path')
     SEEDS_PATH= MAIN_CONFIG_PATH+snemo_cfg.get('PRODUCTION_CFG','seed_rel_path')
     VARIANT_PATH=MAIN_CONFIG_PATH+snemo_cfg.get('PRODUCTION_CFG','variant_rel_path')
 
     CONF_PATH=MAIN_CONFIG_PATH+snemo_cfg.get('PRODUCTION_CFG','conf_rel_path')
-    #REL_CONF_PATH=config_rel_path+conf_rel_path
-        #### ./.sys directory
+    
+    #### ./.sys directory
     CURRENT_SYS_PATH=CURRENT_OUTPUT_PATH+snemo_cfg.get('PRODUCTION_CFG','sys_rel_path')
     LOG_PATH=CURRENT_SYS_PATH+snemo_cfg.get('PRODUCTION_CFG','log_rel_path')
-    #REL_LOG_PATH=sys_rel_path+log_rel_path
+    
 
 
 
@@ -213,7 +283,7 @@ def prepare_simu_launcher(arg1=None,arg2=None,arg3=None,arg4=None, arg5=None, ar
     CURRENT_OUTDATA_PATH  = CURRENT_OUTPUT_PATH+snemo_cfg.get('PRODUCTION_CFG','output_rel_path')
     CURRENT_METADATA_PATH = CURRENT_OUTDATA_PATH
 
-    JOB_CHECKER="/simu_check.py"
+    JOB_CHECKER="/check.py"
 
     
     try:
@@ -376,16 +446,16 @@ def prepare_simu_launcher(arg1=None,arg2=None,arg3=None,arg4=None, arg5=None, ar
                 check_file.write("result=os.system('qstat -j %s > /dev/null 2>&1' % job_name)\n")
                 check_file.write("\
 if result != 0:\n\
-   print ('INFO  : %s simulation finished' % job_name)\n\
+   print ('INFO  : %s finished' % job_name)\n\
 else:\n\
-   print ('WARNING : %s simulation not finished' % job_name)\n\
+   print ('WARNING : %s not yet finished' % job_name)\n\
    running_iterator=running_iterator+1\n\n\
 ")
 
                 check_file.write("grep_result=os.system('grep successfully %s > /dev/null' % uniq_log_filename)\n")
                 check_file.write("\
 if grep_result != 0:\n\
-   print ('WARNING  : %s simulation ended with error?' % job_name)\n\
+   print ('WARNING  : %s not running but no sucess' % job_name)\n\
    #running_iterator=running_iterator+1\n\
 else:\n\
    print ('INFO  : %s  successfully finished' % job_name)\n\
@@ -395,7 +465,7 @@ else:\n\
                 check_file.write("grep_result=os.system('grep failed %s > /dev/null' % uniq_log_filename)\n")
                 check_file.write("\
 if grep_result != 0:\n\
-   print ('INFO  : %s simulation finished with no error' % job_name)\n\
+   print ('INFO  : %s no error found' % job_name)\n\
    #running_iterator=running_iterator+1\n\
 else:\n\
    print ('WARNING : %s  FAILED' % job_name)\n\
@@ -445,8 +515,7 @@ else:\n\
         print("\033[91mERROR\033[00m : [%s] : Do not create sh script successfully"%function_name)
         sys.exit(1)
 
-    #log_file.write("INFO : Prepare launcher finished, ready to process")
+    
     if debug:
         print ("DEBUG : --------------------------------------")
-#log_file.close()
-#     os.system("chmod 755 %s" % check_filename)
+

@@ -37,6 +37,7 @@ def prepare_files(arg0=None,arg1=None,arg2=None,arg3=None,arg4=None,arg5=None, a
     function_name="prepare_files"
     
     if debug:
+        print("DEBUG : *************************************")
         print ("INFO : [%s] : Prepare files for simulation purpose using (%s, %s, %s, %s, %s) "%(function_name,arg0,arg1,arg2,arg3,arg4) )
         
     variant_file_short_name   = arg1
@@ -157,3 +158,4 @@ def prepare_files(arg0=None,arg1=None,arg2=None,arg3=None,arg4=None,arg5=None, a
 
     if debug:
         print("DEBUG : [%s] : shell script production done !"%function_name )
+        print("DEBUG : *************************************")

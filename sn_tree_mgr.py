@@ -142,7 +142,7 @@ def prepare_tree(arg0=None,arg1=None,arg2=None,arg3=None,arg4=None,arg5=None,arg
     #End of directories production
 
     if debug:
-        print ("DEBUG : [%s] Working tree produced ! "%function_name)
+        print ("DEBUG : [%s] : Working tree produced ! "%function_name)
 
 
     p = subprocess.Popen(args=["%s/%s --version" % (snemo_cfg.get('SW_CFG','sw_path'),sw)],stdout=subprocess.PIPE,stderr=subprocess.STDOUT,shell=True)
