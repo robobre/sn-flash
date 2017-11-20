@@ -186,7 +186,6 @@ if __name__ == '__main__':
         try: 
             print("DEBUG : start : sn_tree_mgr.run_prod(input_data_path,FARM_LOCATION)")
             FARM_LOCATION="CCLYON"
-            #sn_simu_mgr_next.run_prod(input_data_path,FARM_LOCATION)
             sn_tree_mgr.run(input_data_path,FARM_LOCATION)
         except:
             print("\033[91mERROR\033[00m : [%s] : Can not execute run_prod"%APP_NAME)
@@ -195,11 +194,11 @@ if __name__ == '__main__':
         try: 
             print("DEBUG : [%s] : Store simulation tarball on HPSS@CCLYON" % APP_NAME)
             FARM_LOCATION="CCLYON"
-            #sn_simu_mgr_next.publish_production(input_data_path,simulation, production)
-            #sn_simu_mgr_next.prepare_tarball(input_data_path)
-            #sn_simu_mgr_next.store(input_data_path,FARM_LOCATION,production)
+            #sn_tree_mgr.publish_production(input_data_path,simulation, production)
+            sn_tree_mgr.prepare_tarball(input_data_path)
+            sn_tree_mgr.store(input_data_path,FARM_LOCATION,production)
         except:
-            print("\033[91mERROR\033[00m : %s : Can not store files on HPSS@CCLYON"%APP_NAME)
+            print("\033[91mERROR\033[00m : [%s] : Can not store files on HPSS@CCLYON"%APP_NAME)
             sys.exit(1)
 
 
@@ -239,13 +238,6 @@ if __name__ == '__main__':
         #         print("\033[91mERROR\033[00m : [%s] : Can not store reco files on HPSS@CCLYON"%APP_NAME)
         #         sys.exit(1)
 
-
-                
-        try: 
-            print("DEBUG : [%s] : Try to start reco process" % APP_NAME)
-        except:
-            print("\033[91mERROR\033[00m : [%s] : Can not execute reco process"%APP_NAME)
-            sys.exit(1)
 
 
 

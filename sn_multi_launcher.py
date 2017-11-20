@@ -148,8 +148,7 @@ def prepare_reco_launcher(arg0=None,arg1=None):
             
             uniq_log.write("INFO : Prepare script using ${INPUT_DATA_PATH}\n")
             uniq_log.write("INFO : Up to now, ${INPUT_DATA_PATH}=%s \n"%INPUT_DATA_PATH)
-            uniq_log.write("INFO : Up to now, ${CURRENT_OUTPUT_PATH}=%s \n"%CURRENT_OUTPUT_PATH)
-            uniq_log.write("INFO : 'export CURRENT_OUTPUT_PATH=%s' \n"%CURRENT_OUTPUT_PATH)
+            uniq_log.write("INFO : 'export WORKING_PATH=%s' \n"%CURRENT_OUTPUT_PATH)
             uniq_log.write("INFO : Ready for uniq job submission, so let's go !\n")
             uniq_log.close()
             
@@ -203,6 +202,12 @@ else:\n\
             
             uniq_launch.write("mv %s ${WORKING_PATH}/%s/%s \n\n" % (short_output_filename,snemo_cfg.get('PRODUCTION_CFG','output_rel_path'),short_output_filename))
             uniq_launch.write("if [ $? -eq 0 ];\nthen\n echo 'INFO : data copy done'>>  ${WORKING_PATH}/%s/%s\nelse\n  echo 'ERROR : data copy failed'>>  ${WORKING_PATH}/%s/%s\n exit 1\nfi\n\n" % (snemo_cfg.get('PRODUCTION_CFG','sys_rel_path')+snemo_cfg.get('PRODUCTION_CFG','log_rel_path'),uniq_short_log_filename,snemo_cfg.get('PRODUCTION_CFG','sys_rel_path')+snemo_cfg.get('PRODUCTION_CFG','log_rel_path'),uniq_short_log_filename))
+
+
+            uniq_launch.write("python %s \n"%check_filename)
+            uniq_launch.write("echo queue : $QUEUE\n")
+            uniq_launch.write("echo job : $JOB_ID\n")
+
             
             uniq_launch.close()
             os.system("chmod 555 %s" % uniq_launch_filename)
@@ -218,6 +223,8 @@ else:\n\
         check_file.write("log_file.write('INFO  : error :  %s / %s \\n'    %(error_iterator,iterator))\n")
         check_file.write("log_file.write('INFO  : success :  %s / %s \\n'  %(success_iterator,iterator))\n\n")
 
+        
+        
         check_file.close()
         os.system("chmod 555 %s" % check_filename)
         

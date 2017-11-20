@@ -15,7 +15,7 @@ import subprocess
 import ConfigParser
 import uuid
 import fnmatch
-
+import tarfile
 
 import sn_simu_mgr
 import sn_reco_mgr
@@ -314,6 +314,77 @@ def run(arg0=None,arg1=None):
 ##################################################### end of run_mc
 
 
+##################################################### function prepare_tarball
+def prepare_tarball(arg0):
+
+    debug=True
+    function_name="prepare_tarball"
+    if debug:
+        print ("DEBUG : --------------------------------------")
+        print ("DEBUG : [%s] : Start function"%function_name)
+
+        
+    CURRENT_OUTPUT_PATH = arg0
+    
+    print("DEBUG : [%s] : Ready to prepare a tarball with %s" % (function_name,CURRENT_OUTPUT_PATH))
+    
+    tarball_name=CURRENT_OUTPUT_PATH+".tar.gz"
+
+    print("DEBUG : [%s] : Tarball is : %s" % (function_name,tarball_name))
+
+
+    in_file=CURRENT_OUTPUT_PATH#+"/"+simu_file_name
+    simu_file_name      = os.path.basename(in_file)
+    print ("DEBUG : [%s] : prepare tarball from : %s "%(function_name,simu_file_name))
+    tarball_name=in_file+".tar.gz"
+
+    tar = tarfile.open(tarball_name, 'w:gz')
+    for name in [in_file]:
+        tar.add(name,arcname=simu_file_name)
+    tar.close()
+    
+    print("DEBUG : [%s] : Tarball prepared and ready to be stored safely"%function_name)
+
+
+def store(arg0=None,arg1=None,arg2=None):
+    
+    debug=True
+    function_name="store_mc"
+    if debug:
+        print ("DEBUG : --------------------------------------")
+        print ("DEBUG : [%s] Start function "%function_name)
+
+        
+        
+    if arg0 != None:
+        file_to_store=arg0
+    else:
+        print("\033[91mERROR\033[00m : [%s] : Need to provide main simulation path for storage"%function_name)
+        sys.exit(1)
+        
+    if arg1 != "CCLYON":
+        print("\033[91mERROR\033[00m : [%s] : Do not support other farm than CCLYON"%function_name)
+        sys.exit(1)
+    else:
+        print("DEBUG : [%s] : Ready to store %s on HPSS@CCLYON"%(function_name,file_to_store))
+    if arg2 == True:
+        prod_mode=arg2
+        print("\033[92mINFO\033[00m  : [%s] : Storage in production mode (blessed) activated"%function_name)
+    if arg2 == None or arg2 == False:
+        prod_mode=False
+        print("\033[92mINFO\033[00m  : [%s] : Storage in user mode (damned) activated"%function_name)
+    
+
+    tarball_filename=file_to_store+".tar.gz"
+    try:
+        if prod_mode == False:
+            os.system("rfcp %s %s" % (tarball_filename,HPSS_USER_PATH))
+        else:
+            os.system("rfcp %s %s" % (tarball_filename,HPSS_BLESSED_PATH))
+    except:
+        print("\033[91mERROR\033[00m : [%s] : Can not store on %s "%(function_name,HPSS_USER_PATH))
+        sys.exit(1)
+
 
 ##################################################### function publish_production
 def publish_production(arg0=None,arg1=None,arg2=None):
@@ -321,8 +392,9 @@ def publish_production(arg0=None,arg1=None,arg2=None):
     debug=True
     function_name="publish_production"
     if debug:
-        print ("\nDEBUG : Enter in %s function"%function_name)
         print ("DEBUG : --------------------------------------")
+        print ("\nDEBUG : [%s] : Start function"%function_name)
+
        
     
     if arg0 != None:
