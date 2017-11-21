@@ -353,9 +353,16 @@ def store(arg0=None,arg1=None,arg2=None):
     if debug:
         print ("DEBUG : --------------------------------------")
         print ("DEBUG : [%s] Start function "%function_name)
+    
 
+    snemo_cfg = ConfigParser.ConfigParser()
+    snemo_cfg.read('snemo.cfg')
+
+    user_cfg = ConfigParser.ConfigParser()
+    user_cfg.read('user.cfg')
         
-        
+
+
     if arg0 != None:
         file_to_store=arg0
     else:
@@ -378,9 +385,29 @@ def store(arg0=None,arg1=None,arg2=None):
     tarball_filename=file_to_store+".tar.gz"
     try:
         if prod_mode == False:
-            os.system("rfcp %s %s" % (tarball_filename,HPSS_USER_PATH))
+            copy_path = snemo_cfg.get('PRODUCTION_CFG','hpss_user_path')+"/"+user_cfg.get('USER_CFG','user')
         else:
-            os.system("rfcp %s %s" % (tarball_filename,HPSS_BLESSED_PATH))
+            copy_path = snemo_cfg.get('PRODUCTION_CFG','hpss_blessed_path')
+
+        if debug: 
+            print("\033[92mINFO\033[00m  : [%s] : Expected storage path : %s"%(function_name,copy_path))
+
+        path_exist = os.system("rfstat %s >/dev/null 2>&1"%copy_path)
+        if path_exist != 0:
+            success_command = os.system("rfmkdir %s"%copy_path)
+            if success_command == False:
+                print ("\033[91mERROR\033[00m : [%s] : Can not create storage path %s"%(function_name,copy_path))
+                sys.exit(1)
+            else:
+                if debug: 
+                    print("DEBUG : [%s] : Storage path create (%s)"%(function_name,copy_path))
+                
+        else:
+            os.system("rfcp %s %s" % (tarball_filename,copy_path))
+                
+                
+
+
     except:
         print("\033[91mERROR\033[00m : [%s] : Can not store on %s "%(function_name,HPSS_USER_PATH))
         sys.exit(1)
