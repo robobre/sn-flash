@@ -223,7 +223,11 @@ else:\n\
         check_file.write("log_file.write('INFO  : error :  %s / %s \\n'    %(error_iterator,iterator))\n")
         check_file.write("log_file.write('INFO  : success :  %s / %s \\n'  %(success_iterator,iterator))\n\n")
 
-        
+
+        check_file.write("\n\
+if success_iterator == iterator:\n\
+    log_file.write('BACKUP : OK')")
+
         
         check_file.close()
         os.system("chmod 555 %s" % check_filename)
@@ -513,7 +517,9 @@ else:\n\
 #     print ('Simulation not finished ! Can not update supernemo DB')\n\
 #     log_file.write('WARNING : Simulation is not finished ! Can not update SuperNEMO DB')\n")
 
-
+        check_file.write("\n\
+if success_iterator == iterator:\n\
+    log_file.write('BACKUP : OK')")
 
         check_file.close()
         os.system("chmod 555 %s" % check_filename)
