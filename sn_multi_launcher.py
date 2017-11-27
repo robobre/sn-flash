@@ -433,6 +433,7 @@ def prepare_simu_launcher(arg1=None,arg2=None,arg3=None,arg4=None, arg5=None, ar
                 uniq_launch.write("python ${WORKING_PATH}/%s \n"%short_check_filename)
                 uniq_launch.write("echo queue : $QUEUE\n")
                 uniq_launch.write("echo job : $JOB_ID\n")
+                uniq_launch.write("cat /proc/cpuinfo | grep -m 1 bogomips\n")
 
                 uniq_launch.close()
                 os.system("chmod 555 %s" % uniq_launch_filename)

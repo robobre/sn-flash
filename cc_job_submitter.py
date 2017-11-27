@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python
 
 
@@ -40,12 +41,27 @@ def qsub(arg0=None,arg1=None,arg2=None):
     
     try:
         log_path=path+snemo_cfg.get('PRODUCTION_CFG','sys_rel_path')+snemo_cfg.get('PRODUCTION_CFG','log_rel_path')+"/"
+        log_file_name=log_path+"/main"+".log"
+        log_file = open(log_file_name,"a")
+
+
         check_file=path+snemo_cfg.get('PRODUCTION_CFG','sys_rel_path')+snemo_cfg.get('PRODUCTION_CFG','launcher_rel_path')+"/simu_check.py"
 
+        log_file.write("INFO : [%s] : Job submission \n"%qsub.__name__)
+        log_file.write("COMMAND : [%s] : qsub %s -N %s -v WORKING_PATH='%s' -e %s -o %s -m e -M %s %s\n" %(qsub.__name__,snemo_cfg.get('BATCH_CFG','submit_option'),name,path,log_path,log_path,usr_cfg.get('USER_CFG','mail_to'),launch_filename))
+
+
         subprocess.call("qsub %s -N %s -v WORKING_PATH='%s' -e %s -o %s -m e -M %s %s" %(snemo_cfg.get('BATCH_CFG','submit_option'),name,path,log_path,log_path,usr_cfg.get('USER_CFG','mail_to'),launch_filename), shell=True)
+
+
         print("INFO : Job : %s"%launch_filename)
         print ("\033[92=============> %s started ! <============= \033[00m\n" % name)
         
+        log_file.close()
+
+
+
+
     except:
         print("\033[91mERROR\033[00m : [%s] : Can not submit job using qsub at cclyon"%qsub.__name__)
         sys.exit(1)

@@ -130,20 +130,29 @@ def prepare_files(arg0=None,arg1=None,arg2=None,arg3=None,arg4=None,arg5=None, a
     log_file.close()
 
     # ########## get vertex generator and primary event generator to fill DB #############
-    # variant_file=open(variant_file_name,"r")
-    # chaine=variant_file.readlines()
-    # size=len(chaine)
-    # for i in range(size):
-    #     if chaine[i].find('registry="vertexes"') == 1:
-    #         tmp=chaine[i+1]
-    #         vertex_gen=tmp.split("=")
-    #     if chaine[i].find('registry="primary_events"') == 1:
-    #         tmp=chaine[i+1]
-    #         primary_gen=tmp.split("=")
+    variant_file=open(variant_file_name,"r")
+    chaine=variant_file.readlines()
+    size=len(chaine)
+    for i in range(size):
+        if chaine[i].find('registry="vertexes"') == 1:
+            tmp=chaine[i+1]
+            vertex_gen=tmp.split("=")
+        if chaine[i].find('registry="primary_events"') == 1:
+            tmp=chaine[i+1]
+            primary_gen=tmp.split("=")
 
-    # my_vertex=vertex_gen[1].replace(' "','').rstrip("\n").rstrip('"')
-    # my_event=primary_gen[1].replace(' "','').rstrip("\n").rstrip('"')
-    # # generators obtained
+    my_vertex=vertex_gen[1].replace(' "','').rstrip("\n").rstrip('"')
+    my_event=primary_gen[1].replace(' "','').rstrip("\n").rstrip('"')
+    # generators obtained
+
+    log_db_filename = CURRENT_OUTPUT_PATH+snemo_cfg.get('PRODUCTION_CFG','sys_rel_path')+snemo_cfg.get('PRODUCTION_CFG','log_rel_path')+"/"+snemo_cfg.get('DB_CFG','log_db')
+    log_db = open(log_db_filename,'a')
+    log_db.write('event_generator="%s"\n'%(my_event))
+    log_db.write('vertex_generator="%s"\n'%(my_vertex))
+    lob_db.close()
+
+
+
 
     if debug:
         print("DEBUG : [%s] : ready for shell script production..." %function_name)

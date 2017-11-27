@@ -180,6 +180,34 @@ def prepare_tree(arg0=None,arg1=None,arg2=None,arg3=None,arg4=None,arg5=None,arg
         log_file.write("DEBUG : [%s] variant file name  : %s \n" % (function_name,variant_short_name))
     
 
+    log_db_filename = CURRENT_OUTPUT_PATH+snemo_cfg.get('PRODUCTION_CFG','sys_rel_path')+snemo_cfg.get('PRODUCTION_CFG','log_rel_path')+"/"+snemo_cfg.get('DB_CFG','log_db')
+    log_db = open(log_db_filename,'w')
+    log_db.write('project="supernemo"\n')
+    log_db.write('processingStep="production"\n')
+    log_db.write('entity="demo"\n')
+    
+    log_db.write('experiment="%s"\n'%(experiment_name))
+    log_db.write('user="%s"\n'%(user_cfg.get('USER_CFG','user')))
+    log_db.write('simu_id="%s"\n'%(prefix_file+"_"+str(current_index)))
+    log_db.write('checking_status="unchecked"\n')
+    
+    if production_mode:
+        log_db.write('confidence_level="blessed"\n')
+    else:
+        log_db.write('confidence_level="damned"\n')
+        
+    if simulation_mode:
+        log_db.write('event_per_file="%s"\n'%(nb_event))
+        log_db.write('nb_of_file="%s"\n'%(nb_of_files))
+    
+    log_db.write('user_comment="%s"\n'%(sn_user_comment))
+    log_db.write('date="%s"\n'%(datetime.now()))
+
+    log_db.close()
+
+
+
+
     if simulation_mode:
         if debug:
             print("DEBUG : [%s] : ready for simulation files production..."%function_name )
@@ -198,21 +226,12 @@ def prepare_tree(arg0=None,arg1=None,arg2=None,arg3=None,arg4=None,arg5=None,arg
         print ("\033[91mERROR\033[00m : [%s] : Should be simulation OR reconstruction..."%function_name)
         exit(1)
         
+ 
 
- # # ############# Fill DB using AMI client #########
- #    line='AddElement -project="supernemo" -processingStep="production" -entity="demo"'
- #    line+=' -simu_id="'+prefix_simu_file+'_'+str(current_index)+'"'
- #    line+=' -confidence_level="damned"'
- #    line+=' -checking_status="unchecked"'
  #    line+=' -event_generator="'+my_event+'"'
- #    line+=' -experiment="'+experiment_name+'"'
- #    line+=' -event_per_file="'+nb_event+'"'
- #    line+=' -nb_of_file="'+nb_of_file+'"'
  #    line+=' -output_path="'+CURRENT_OUTPUT_PATH+'"'
- #    line+=' -user_comment="'+sn_user_comment+'"'
  #    line+=' -vertex_generator="'+my_vertex+'"'
- #    line+=' -user="'+USER+'"'
- #    #line+=' -date="'+start_time+'"'
+
     
  #    # try: 
  #    #     #log_file.write("\033[92mINFO\033[00m  : %s\n" % line)
