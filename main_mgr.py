@@ -184,8 +184,9 @@ if __name__ == '__main__':
 
     if run_prod == True:
         try: 
-            print("DEBUG : start : sn_tree_mgr.run_prod(input_data_path,FARM_LOCATION)")
+            print("INFO : start : sn_tree_mgr.run_prod(input_data_path,FARM_LOCATION)")
             FARM_LOCATION="CCLYON"
+            sn_tree_mgr.prepare_db(input_data_path)
             sn_tree_mgr.run(input_data_path,FARM_LOCATION)
         except:
             print("\033[91mERROR\033[00m : [%s] : Can not execute run_prod"%APP_NAME)
@@ -195,49 +196,21 @@ if __name__ == '__main__':
             print("DEBUG : [%s] : Store simulation tarball on HPSS@CCLYON" % APP_NAME)
             FARM_LOCATION="CCLYON"
             #sn_tree_mgr.publish_production(input_data_path,simulation, production)
-            sn_tree_mgr.prepare_tarball(input_data_path)
-            sn_tree_mgr.store(input_data_path,FARM_LOCATION,production)
+
+            status = sn_tree_mgr.check_production_status(input_data_path)
+
+            if status == True:
+                sn_tree_mgr.prepare_tarball(input_data_path)
+                sn_tree_mgr.store(input_data_path,FARM_LOCATION,production)
+            else:
+                print("\033[33mWARNING\033[00m : [%s] : Not ready to be stored on HPSS@CCLYON"%APP_NAME)
+
         except:
             print("\033[91mERROR\033[00m : [%s] : Can not store files on HPSS@CCLYON"%APP_NAME)
             sys.exit(1)
 
 
     
-
-    #RECONSTRUCTION PURPOSE
-    # if simulation == False and reconstruction == True:
-    #     if prepare_tree == True:
-    #         try:
-    #             print("\n")
-    #             print("DEBUG : [%s] : sn_tree_mgr.prepare(......)"%APP_NAME)
-    #             print("\n")
-                
-    #             #sn_simu_mgr_next.prepare_tree(nb_file,nb_event,exp_name,production,variant_file)
-    #             sn_tree_mgr.prepare_tree('a','reconstruction',exp_name, production)
-                
-    #             print("\n")
-    #             print("INFO : [%s] : You can process that cmd :\n python main_mgr.py --task reco --run PATH"%APP_NAME)
-    #             print("\n")
-    #         except:
-    #             print("\033[91mERROR\033[00m : [%s] : Can not execute prepare_tree"%APP_NAME)
-    #             sys.exit(1)
-        # if run_prod == True:
-        #     try: 
-        #         print("DEBUG : start : sn_reco_mgr.run(input_data_path,FARM_LOCATION)")
-        #         FARM_LOCATION="CCLYON"
-        #         sn_tree_mgr.run(input_data_path,FARM_LOCATION)
-        #     except:
-        #         print("\033[91mERROR\033[00m : [%s] : Can not execute run_reco"%APP_NAME)
-        #         sys.exit(1)
-        # if store_tarball == True:
-        #     try: 
-        #         print("DEBUG : [%s] : Store reconstruction tarball on HPSS@CCLYON" % APP_NAME)
-        #         FARM_LOCATION="CCLYON"
-        #         sn_tree_mgr.publish_production(input_data_path,simulation, production)
-        #     except:
-        #         print("\033[91mERROR\033[00m : [%s] : Can not store reco files on HPSS@CCLYON"%APP_NAME)
-        #         sys.exit(1)
-
 
 
 

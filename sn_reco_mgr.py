@@ -54,6 +54,12 @@ def prepare_files(arg0=None,arg1=None):
     log_file_name=CURRENT_OUTPUT_PATH+snemo_cfg.get('PRODUCTION_CFG','sys_rel_path')+snemo_cfg.get('PRODUCTION_CFG','log_rel_path')+"/"+"main.log"
     log_file = open(log_file_name,"a")
 
+    log_db_filename = CURRENT_OUTPUT_PATH+snemo_cfg.get('PRODUCTION_CFG','sys_rel_path')+snemo_cfg.get('PRODUCTION_CFG','log_rel_path')+"/"+snemo_cfg.get('DB_CFG','log_db')
+    log_db = open(log_db_filename,'a')
+    log_db.write('reconstruction_version="%s"\n'%(snemo_cfg.get('RECO_CFG','reconstruction_conf')))
+    log_db.close()
+
+
     try:
         os.system("cp %s %s"%(snemo_cfg.get('RECO_CFG','reconstruction_conf'),CURRENT_OUTPUT_PATH+snemo_cfg.get('PRODUCTION_CFG','config_rel_path')+snemo_cfg.get('PRODUCTION_CFG','conf_rel_path')+"/."))    
     except:

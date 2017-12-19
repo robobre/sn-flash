@@ -51,7 +51,7 @@ def qsub(arg0=None,arg1=None,arg2=None):
         log_file.write("COMMAND : [%s] : qsub %s -N %s -v WORKING_PATH='%s' -e %s -o %s -m e -M %s %s\n" %(qsub.__name__,snemo_cfg.get('BATCH_CFG','submit_option'),name,path,log_path,log_path,usr_cfg.get('USER_CFG','mail_to'),launch_filename))
 
 
-        subprocess.call("qsub %s -N %s -v WORKING_PATH='%s' -e %s -o %s -m e -M %s %s" %(snemo_cfg.get('BATCH_CFG','submit_option'),name,path,log_path,log_path,usr_cfg.get('USER_CFG','mail_to'),launch_filename), shell=True)
+        subprocess.call("qsub %s -N %s -v WORKING_PATH='%s' -v SW_PATH='%s' -e %s -o %s -m e -M %s %s" %(snemo_cfg.get('BATCH_CFG','submit_option'),name,path,snemo_cfg.get('SW_CFG','sw_path'),log_path,log_path,usr_cfg.get('USER_CFG','mail_to'),launch_filename), shell=True)
 
 
         print("INFO : Job : %s"%launch_filename)

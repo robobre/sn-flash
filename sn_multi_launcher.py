@@ -84,7 +84,16 @@ def prepare_reco_launcher(arg0=None,arg1=None):
 
 
     #TMP STUFF
-    INPUT_DATA_PATH =  arg1+snemo_cfg.get('PRODUCTION_CFG','output_rel_path')
+    INPUT_DATA_PATH  = arg1+snemo_cfg.get('PRODUCTION_CFG','output_rel_path')
+    from_hpss_status = sn_tree_mgr.is_hpss_path(INPUT_DATA_PATH)
+    
+    if from_hpss_status == True:
+        cp_cmd='xrdcp root://ccxroot:1999//'
+    else:
+        cp_cmd='cp '
+
+
+
 
     if debug:
         print("DEBUG : [%s] : Check list of input SD files "%function_name)
@@ -149,6 +158,7 @@ def prepare_reco_launcher(arg0=None,arg1=None):
             uniq_log.write("INFO : Prepare script using ${INPUT_DATA_PATH}\n")
             uniq_log.write("INFO : Up to now, ${INPUT_DATA_PATH}=%s \n"%INPUT_DATA_PATH)
             uniq_log.write("INFO : 'export WORKING_PATH=%s' \n"%CURRENT_OUTPUT_PATH)
+            uniq_log.write("INFO : 'export SW_PATH=%s' \n"%SW_PATH)
             uniq_log.write("INFO : Ready for uniq job submission, so let's go !\n")
             uniq_log.close()
             
@@ -194,8 +204,22 @@ else:\n\
             uniq_launch.write("# Contact : lemiere@lpccaen.in2p3.fr\n")
             uniq_launch.write("# Object  : SuperNEMO Uniq Simulation launcher\n\n")
             
+            uniq_launch.write("%s %s/%s .\n"%(cp_cmd,INPUT_DATA_PATH,in_file))
+            uniq_launch.write("if [ $? -eq 0 ];\nthen\n echo 'INFO : successfully copied on batch'>>  ${WORKING_PATH}/%s/%s\nelse\n  echo 'ERROR : copy failed'>>  ${WORKING_PATH}/%s/%s\n exit 1\nfi\n" % (snemo_cfg.get('PRODUCTION_CFG','sys_rel_path')+snemo_cfg.get('PRODUCTION_CFG','log_rel_path'),uniq_short_log_filename,snemo_cfg.get('PRODUCTION_CFG','sys_rel_path')+snemo_cfg.get('PRODUCTION_CFG','log_rel_path'),uniq_short_log_filename))
+
+
+            uniq_launch.write('if [ "x$WORKING_PATH" != "x" ];\nthen\n echo "INFO : WORKING_PATH exist : " ${WORKING_PATH} >>  ${WORKING_PATH}/%s\nelse\n  echo "ERROR : WORKING_PATH is empty"\n exit 1\nfi\n'% (uniq_short_log_filename))
+
+            uniq_launch.write('if [ "x$SW_PATH" != "x" ];\nthen\n echo "INFO : SW_PATH exist : " ${SW_PATH} >>  ${WORKING_PATH}/%s\nelse\n  echo "ERROR : SW_PATH is empty"\n exit 1\nfi\n' % (uniq_short_log_filename))
+
+            
+            uniq_launch.write("ls -rthla >> ${WORKING_PATH}/%s/%s"%(snemo_cfg.get('PRODUCTION_CFG','sys_rel_path')+snemo_cfg.get('PRODUCTION_CFG','log_rel_path'),uniq_short_log_filename))
+
+
+
+
             uniq_launch.write("\n\n#*************** COMMAND **************\n")
-            uniq_launch.write('%s/%s -i %s/%s -o %s -p %s \n' % (SW_PATH,sw_file,INPUT_DATA_PATH,in_file,short_output_filename,reco_conf_filename))
+            uniq_launch.write('${SW_PATH}/%s -i %s/%s -o %s -p %s \n' % (sw_file,INPUT_DATA_PATH,in_file,short_output_filename,reco_conf_filename))
             
             uniq_launch.write("if [ $? -eq 0 ];\nthen\n echo 'INFO : successfully finished'>>  ${WORKING_PATH}/%s/%s\nelse\n  echo 'ERROR : reconstruction failed'>>  ${WORKING_PATH}/%s/%s\n exit 1\nfi\n" % (snemo_cfg.get('PRODUCTION_CFG','sys_rel_path')+snemo_cfg.get('PRODUCTION_CFG','log_rel_path'),uniq_short_log_filename,snemo_cfg.get('PRODUCTION_CFG','sys_rel_path')+snemo_cfg.get('PRODUCTION_CFG','log_rel_path'),uniq_short_log_filename))
             uniq_launch.write("#*************** END OF CMD **************\n\n")
@@ -207,7 +231,7 @@ else:\n\
             uniq_launch.write("python %s \n"%check_filename)
             uniq_launch.write("echo queue : $QUEUE\n")
             uniq_launch.write("echo job : $JOB_ID\n")
-
+            uniq_launch.write("cat /proc/cpuinfo | grep -m 1 bogomips\n")
             
             uniq_launch.close()
             os.system("chmod 555 %s" % uniq_launch_filename)
@@ -412,14 +436,16 @@ def prepare_simu_launcher(arg1=None,arg2=None,arg3=None,arg4=None, arg5=None, ar
                 uniq_launch.write("# Contact : lemiere@lpccaen.in2p3.fr\n")
                 uniq_launch.write("# Object  : SuperNEMO Uniq Simulation launcher\n\n")
 
-                uniq_launch.write("if [ -n '$WORKING_PATH' ];\nthen\n echo 'INFO : WORKING_PATH exist : ' ${WORKING_PATH} >>  ${WORKING_PATH}/%s\nelse\n  echo 'ERROR : WORKING_PATH is empty'\n exit 1\nfi\n" % (uniq_short_log_filename))
+                uniq_launch.write('if [ "x$WORKING_PATH" != "x" ];\nthen\n echo "INFO : WORKING_PATH exist : " ${WORKING_PATH} >>  ${WORKING_PATH}/%s\nelse\n  echo "ERROR : WORKING_PATH is empty"\n exit 1\nfi\n' % (uniq_short_log_filename))
+
+                uniq_launch.write('if [ "x$SW_PATH" != "x" ];\nthen\n echo "INFO : SW_PATH exist : " ${SW_PATH} >>  ${WORKING_PATH}/%s\nelse\n  echo "ERROR : SW_PATH is empty"\n exit 1\nfi\n' % (uniq_short_log_filename))
 
 
                 #uniq_launch.write("WORKING_PATH=$1 \n")
                 uniq_launch.write("date >>  ${WORKING_PATH}/%s " %uniq_short_log_filename)
                 uniq_launch.write("\n\n#*************** COMMAND **************\n")
 
-                uniq_launch.write('%s/%s  -d "sys_path.resources@${WORKING_PATH}" -o %s -c @sys_path:%s -m %s \n' % (SW_PATH,sw_file,short_output_filename,uniq_short_config_filename,short_metadata_filename))
+                uniq_launch.write('${SW_PATH}/%s  -d "sys_path.resources@${WORKING_PATH}" -o %s -c @sys_path:%s -m %s \n' % (sw_file,short_output_filename,uniq_short_config_filename,short_metadata_filename))
 
                 uniq_launch.write("if [ $? -eq 0 ];\nthen\n echo 'INFO : successfully finished'>>  ${WORKING_PATH}/%s\nelse\n  echo 'ERROR : simulation failed'>>  ${WORKING_PATH}/%s\n exit 1\nfi\n" % (uniq_short_log_filename,uniq_short_log_filename))
                 uniq_launch.write("#*************** END OF CMD **************\n\n")
@@ -446,7 +472,8 @@ def prepare_simu_launcher(arg1=None,arg2=None,arg3=None,arg4=None, arg5=None, ar
 
 
                 uniq_log.write("INFO : Prepare script using ${WORKING_PATH}\n")
-                uniq_log.write("INFO : Up to now, ${WORKING_PATH}=%s \n"%CURRENT_OUTPUT_PATH)
+                uniq_log.write("INFO : 'export WORKING_PATH=%s \n"%CURRENT_OUTPUT_PATH)
+                uniq_log.write("INFO : 'export SW_PATH=%s' \n"%SW_PATH)
                 uniq_log.write("INFO : Ready for uniq job submission, so let's go !\n")
                 uniq_log.close()
 

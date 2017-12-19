@@ -65,6 +65,8 @@ def prepare_files(arg0=None,arg1=None,arg2=None,arg3=None,arg4=None,arg5=None, a
     
     
     if gui_mode == True:
+        print("\n\033[92mINFO\033[00m : [%s] : Starting GUI... Wait a while...."%(function_name))
+
     #     # ############### Start variant GUI to build variant config file #############
         if debug:
             print("DEBUG : [%s] : Configure variant file using gui"%(function_name))
@@ -129,6 +131,9 @@ def prepare_files(arg0=None,arg1=None,arg2=None,arg3=None,arg4=None,arg5=None, a
 
     log_file.close()
 
+
+    if debug:
+        print("DEBUG : [%s] : ready to fill database logfile" %function_name)
     # ########## get vertex generator and primary event generator to fill DB #############
     variant_file=open(variant_file_name,"r")
     chaine=variant_file.readlines()
@@ -149,11 +154,8 @@ def prepare_files(arg0=None,arg1=None,arg2=None,arg3=None,arg4=None,arg5=None, a
     log_db = open(log_db_filename,'a')
     log_db.write('event_generator="%s"\n'%(my_event))
     log_db.write('vertex_generator="%s"\n'%(my_vertex))
-    lob_db.close()
-
-
-
-
+    log_db.close()
+    
     if debug:
         print("DEBUG : [%s] : ready for shell script production..." %function_name)
         ########### Prepare bunch of simulated files

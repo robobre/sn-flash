@@ -21,6 +21,9 @@ import sn_simu_mgr
 import sn_reco_mgr
 import cc_job_submitter
 
+###  AMI
+import pyAMI.client
+import pyAMI_supernemo
 
 
 def prepare_tree(arg0=None,arg1=None,arg2=None,arg3=None,arg4=None,arg5=None,arg6=None):
@@ -36,18 +39,21 @@ def prepare_tree(arg0=None,arg1=None,arg2=None,arg3=None,arg4=None,arg5=None,arg
     user_cfg = ConfigParser.ConfigParser()
     user_cfg.read('user.cfg')
 
-    if debug:
-        print ("DEBUG : [%s] : Start function using (%s, %s, %s, %s, %s, %s) "%(function_name,arg0,arg1,arg2,arg3,arg4,arg5) )
+    
         
     if arg1 == "simulation":
         simulation_mode     = True
         reconstruction_mode = False
         nb_of_files         = arg5
         nb_event            = arg6
+        if debug:
+            print ("DEBUG : [%s] : Start simulation tree using (%s, %s, %s, %s, %s, %s, %s) "%(function_name,arg0,arg1,arg2,arg3,arg4,arg5,arg6) )
     elif arg1 == "reconstruction":
         simulation_mode     = False
         reconstruction_mode = True
         INPUT_PATH          = arg0
+        if debug:
+            print ("DEBUG : [%s] : Start reconstruction tree using (%s) "%(function_name,arg0) )
     else:
         simulation_mode     = False
         reconstruction_mode = False
@@ -88,8 +94,11 @@ def prepare_tree(arg0=None,arg1=None,arg2=None,arg3=None,arg4=None,arg5=None,arg
         print("\033[1;33;40mWARNING\033[00m : No user comment --> No comment the dark side is ... it, you will use ...!\n")
         
         
-    CURRENT_OUTPUT_PATH=OUTPUT_PATH+"/"+prefix_file+"_"+str(current_index)
-    
+    CURRENT_OUTPUT_PATH = OUTPUT_PATH+"/"+prefix_file+"_"+str(current_index)
+    if production_mode:
+        HPSS_OUTPUT_PATH = snemo_cfg.get('PRODUCTION_CFG','hpss_blessed_path')+"/"+prefix_file+"_"+str(current_index)
+    else:
+        HPSS_OUTPUT_PATH = snemo_cfg.get('PRODUCTION_CFG','hpss_user_path')+"/"+prefix_file+"_"+str(current_index)
     
     log_file_short_name="main"+".log"
     variant_short_name="variant"+".profile"
@@ -149,6 +158,12 @@ def prepare_tree(arg0=None,arg1=None,arg2=None,arg3=None,arg4=None,arg5=None,arg
     outputlines = p.stdout.readlines()
     p.wait()
     
+    p = subprocess.Popen(args=["%s/flquery --version" % (snemo_cfg.get('SW_CFG','sw_path'))],stdout=subprocess.PIPE,stderr=subprocess.STDOUT,shell=True)
+    subprocess_output = p.stdout.readlines()
+    p.wait()
+    
+
+
     log_file.write("\n")
     log_file.write("DEBUG : [%s] :  working tree : \n"%function_name)
     log_file.write("DEBUG : Start at             : %s \n" % function_start_time)
@@ -186,10 +201,13 @@ def prepare_tree(arg0=None,arg1=None,arg2=None,arg3=None,arg4=None,arg5=None,arg
     log_db.write('processingStep="production"\n')
     log_db.write('entity="demo"\n')
     
+    log_db.write('sw_version="Falaise_%s"\n'%(subprocess_output[0].rstrip('\n')))
     log_db.write('experiment="%s"\n'%(experiment_name))
     log_db.write('user="%s"\n'%(user_cfg.get('USER_CFG','user')))
     log_db.write('simu_id="%s"\n'%(prefix_file+"_"+str(current_index)))
     log_db.write('checking_status="unchecked"\n')
+    
+    
     
     if production_mode:
         log_db.write('confidence_level="blessed"\n')
@@ -228,30 +246,13 @@ def prepare_tree(arg0=None,arg1=None,arg2=None,arg3=None,arg4=None,arg5=None,arg
         
  
 
- #    line+=' -event_generator="'+my_event+'"'
- #    line+=' -output_path="'+CURRENT_OUTPUT_PATH+'"'
- #    line+=' -vertex_generator="'+my_vertex+'"'
-
-    
- #    # try: 
- #    #     #log_file.write("\033[92mINFO\033[00m  : %s\n" % line)
  #    #     ##########client = pyAMI.client.Client('supernemo')
  #    #     ##########client.execute(line)        
- #    #     log_file.write("\033[92mINFO\033[00m : DB filled with %s" % line)
- #    #     print("DEBUG : client.execute done!")
- #    # except:
- #    #     print("\033[91mERROR\033[00m : Can not fill properly the AMI DB")
- #    #     sys.exit(1)
- #    # End of DB access
+
  #    try:
  #        sn_multi_launcher.prepare_fill_db(CURRENT_OUTPUT_PATH,prefix_simu_file+"_"+str(current_index),line)
  #        #sn_multi_launcher.prepare_tarball(CURRENT_OUTPUT_PATH,prefix_simu_file+"_"+str(current_index))
-        
- #    except:
- #        print("\033[91mERROR\033[00m : Can not launch properly sn_multi_launcher.py")
- #        log_file.write("\033[91mERROR\033[00m : Can not launch properly sn_multi_launcher.py")
- #        sys.exit(1)
- #    #end f bunch
+
 
 
 
@@ -342,27 +343,33 @@ def prepare_tarball(arg0):
         print ("DEBUG : --------------------------------------")
         print ("DEBUG : [%s] : Start function"%function_name)
 
-        
+    snemo_cfg = ConfigParser.ConfigParser()
+    snemo_cfg.read('snemo.cfg')
+
     CURRENT_OUTPUT_PATH = arg0
+    in_file_conf = CURRENT_OUTPUT_PATH+"/"+snemo_cfg.get('PRODUCTION_CFG','config_rel_path')
+    in_file_sys  = CURRENT_OUTPUT_PATH+"/"+snemo_cfg.get('PRODUCTION_CFG','sys_rel_path')
+
+    COPY_OUTPUT_PATH = CURRENT_OUTPUT_PATH+"_bkp"
+
+    os.makedirs(COPY_OUTPUT_PATH)
+    os.makedirs(COPY_OUTPUT_PATH+snemo_cfg.get('PRODUCTION_CFG','output_rel_path'))
+    conf_tarball = COPY_OUTPUT_PATH+"/meta.tar.gz"
+
+    if debug:
+        print("DEBUG : [%s] : Ready to prepare a tarball with %s" % (function_name,CURRENT_OUTPUT_PATH))
     
-    print("DEBUG : [%s] : Ready to prepare a tarball with %s" % (function_name,CURRENT_OUTPUT_PATH))
-    
-    tarball_name=CURRENT_OUTPUT_PATH+".tar.gz"
-
-    print("DEBUG : [%s] : Tarball is : %s" % (function_name,tarball_name))
-
-
-    in_file=CURRENT_OUTPUT_PATH#+"/"+simu_file_name
-    simu_file_name      = os.path.basename(in_file)
-    print ("DEBUG : [%s] : prepare tarball from : %s "%(function_name,simu_file_name))
-    tarball_name=in_file+".tar.gz"
-
-    tar = tarfile.open(tarball_name, 'w:gz')
-    for name in [in_file]:
-        tar.add(name,arcname=simu_file_name)
+    tar = tarfile.open(conf_tarball, 'w:gz')
+    for name in [in_file_conf]:
+        tar.add(name,arcname="config.d")
+        
+        
+    for name in [in_file_sys]:
+        tar.add(name,arcname=".sys")
+            
     tar.close()
-    
-    print("DEBUG : [%s] : Tarball prepared and ready to be stored safely"%function_name)
+    if debug: 
+        print("DEBUG : [%s] : Tarball prepared and ready to be stored safely"%function_name)
 
 
 def store(arg0=None,arg1=None,arg2=None):
@@ -385,7 +392,7 @@ def store(arg0=None,arg1=None,arg2=None):
     if arg0 != None:
         file_to_store=arg0
     else:
-        print("\033[91mERROR\033[00m : [%s] : Need to provide main simulation path for storage"%function_name)
+        print("\033[91mERROR\033[00m : [%s] : Need to provide main production path for storage"%function_name)
         sys.exit(1)
         
     if arg1 != "CCLYON":
@@ -401,7 +408,8 @@ def store(arg0=None,arg1=None,arg2=None):
         print("\033[92mINFO\033[00m  : [%s] : Storage in user mode (damned) activated"%function_name)
     
 
-    tarball_filename=file_to_store+".tar.gz"
+    tarball_filename = file_to_store+"_bkp"
+    cp_filename      = file_to_store
     try:
         if prod_mode == False:
             copy_path = snemo_cfg.get('PRODUCTION_CFG','hpss_user_path')+"/"+user_cfg.get('USER_CFG','user')
@@ -422,7 +430,7 @@ def store(arg0=None,arg1=None,arg2=None):
                     print("DEBUG : [%s] : Storage path create (%s)"%(function_name,copy_path))
                 
         else:
-            os.system("rfcp %s %s" % (tarball_filename,copy_path))
+            os.system("rfcp %s %s/%s" % (tarball_filename,copy_path,cp_filename))
                 
                 
 
@@ -467,3 +475,86 @@ def publish_production(arg0=None,arg1=None,arg2=None):
     store_mc(official_name,"CCLYON",prod_mode)
 
 ##################################################### end of publish_production
+
+
+def prepare_db(arg0):
+
+    debug=True
+    function_name="prepare_db"
+
+
+    if debug:
+        print ("DEBUG : --------------------------------------")
+        print ("DEBUG : [%s] : Start function for production : %s "%(function_name,arg0))
+        
+    
+    snemo_cfg = ConfigParser.ConfigParser()
+    snemo_cfg.read('snemo.cfg')
+
+
+    #client = pyAMI.client.Client('supernemo')
+
+    CURRENT_OUTPUT_PATH = arg0
+    
+    log_db_filename = CURRENT_OUTPUT_PATH+snemo_cfg.get('PRODUCTION_CFG','sys_rel_path')+snemo_cfg.get('PRODUCTION_CFG','log_rel_path')+"/"+snemo_cfg.get('DB_CFG','log_db')
+    log_db = open(log_db_filename,'r')
+
+    db_input="AddElement "
+
+    with open(log_db_filename) as file_to_read:
+        for line in file_to_read:
+            db_input+="-"+line.rstrip('\n')+" "
+
+    print(db_input)
+    #client.execute(db_input)
+    log_db.close()
+
+
+
+    if debug:
+        print ("DEBUG : --------------------------------------")
+
+
+
+def check_production_status(arg0):
+    
+    snemo_cfg = ConfigParser.ConfigParser()
+    snemo_cfg.read('snemo.cfg')
+    
+    debug       = True
+    prod_status = False
+    if debug:
+        print("DEBUG : *************************************")
+        print ("INFO : [%s] : Check production status for official publication (%s)"%(check_production_status.__name__,arg0) )
+
+
+    PROD_PATH = arg0
+    
+    main_log_filename = PROD_PATH+snemo_cfg.get('PRODUCTION_CFG','sys_rel_path')+snemo_cfg.get('PRODUCTION_CFG','log_rel_path')+"/main.log"
+    main_log          = open(main_log_filename,'r')
+    
+    
+    for line in main_log:
+        if line == "BACKUP : OK":
+            prod_status = True
+    
+    main_log.close()
+    return prod_status
+
+
+
+def is_hpss_path(arg0):
+
+    is_hpss = False
+
+    if arg0.split('/')[1] == "sps":
+        print("File from sps...")
+        is_hpss = False
+    elif arg0.split('/')[1] == "hpss":
+        print("File from hpss...")
+        is_hpss = True
+    else:
+        print("\033[91mERROR\033[00m : [%s] : Not designed to get file from other path than 'sps' OR 'hpss'")
+        sys.exit(1)
+    
+    return is_hpss
