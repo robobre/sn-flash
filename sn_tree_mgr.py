@@ -105,22 +105,22 @@ def prepare_tree(arg0=None,arg1=None,arg2=None,arg3=None,arg4=None,arg5=None,arg
     
     
     
-    if debug:
-        print("\nDEBUG : [%s] : working tree starting by %s" % (function_name,CURRENT_OUTPUT_PATH))
-        if reconstruction_mode:
-            print("\nDEBUG : [%s] : Based on SD production : %ss" % (function_name,INPUT_PATH))
-        print("             |-> CONFIG PATH            : %s" % (CURRENT_OUTPUT_PATH+snemo_cfg.get('PRODUCTION_CFG','config_rel_path')))
-        if simulation_mode:
-            print("             |      |-> VARIANT PATH    : %s/" % (snemo_cfg.get('PRODUCTION_CFG','variant_rel_path')))
-            print("             |      |      `-> file name: \033[96m {}\033[00m".format(variant_short_name))
-            print("             |      |-> SEED PATH    : %s/" % (snemo_cfg.get('PRODUCTION_CFG','seed_rel_path')))
-            
-        print("             |      `-> CONF PATH       : %s/" % (snemo_cfg.get('PRODUCTION_CFG','conf_rel_path')))
-        print("             |->  OUTPUT DATA PATH      : %s" % (CURRENT_OUTPUT_PATH+snemo_cfg.get('PRODUCTION_CFG','output_rel_path')))
-        print("             `->  SYS PATH              : %s" % (CURRENT_OUTPUT_PATH+snemo_cfg.get('PRODUCTION_CFG','sys_rel_path')) )
-        print("                    |-> LOG PATH        : %s/" % snemo_cfg.get('PRODUCTION_CFG','log_rel_path'))
-        print("                    |      `-> file name: \033[96m {}\033[00m".format(log_file_short_name))
-        print("                    `-> LAUNCHER PATH   : %s/" % snemo_cfg.get('PRODUCTION_CFG','launcher_rel_path'))
+    #if debug:
+    print("\nINFO : [%s] : working tree starting by %s" % (function_name,CURRENT_OUTPUT_PATH))
+    if reconstruction_mode:
+        print("\nINFO : [%s] : Based on SD production : %ss" % (function_name,INPUT_PATH))
+    print("             |-> CONFIG PATH            : %s" % (CURRENT_OUTPUT_PATH+snemo_cfg.get('PRODUCTION_CFG','config_rel_path')))
+    if simulation_mode:
+        print("             |      |-> VARIANT PATH    : %s/" % (snemo_cfg.get('PRODUCTION_CFG','variant_rel_path')))
+        print("             |      |      `-> file name: \033[96m {}\033[00m".format(variant_short_name))
+        print("             |      |-> SEED PATH    : %s/" % (snemo_cfg.get('PRODUCTION_CFG','seed_rel_path')))
+        
+    print("             |      `-> CONF PATH       : %s/" % (snemo_cfg.get('PRODUCTION_CFG','conf_rel_path')))
+    print("             |->  OUTPUT DATA PATH      : %s" % (CURRENT_OUTPUT_PATH+snemo_cfg.get('PRODUCTION_CFG','output_rel_path')))
+    print("             `->  SYS PATH              : %s" % (CURRENT_OUTPUT_PATH+snemo_cfg.get('PRODUCTION_CFG','sys_rel_path')) )
+    print("                    |-> LOG PATH        : %s/" % snemo_cfg.get('PRODUCTION_CFG','log_rel_path'))
+    print("                    |      `-> file name: \033[96m {}\033[00m".format(log_file_short_name))
+    print("                    `-> LAUNCHER PATH   : %s/" % snemo_cfg.get('PRODUCTION_CFG','launcher_rel_path'))
 
 
      
@@ -408,8 +408,29 @@ def store(arg0=None,arg1=None,arg2=None):
         print("\033[92mINFO\033[00m  : [%s] : Storage in user mode (damned) activated"%function_name)
     
 
-    tarball_filename = file_to_store+"_bkp"
-    cp_filename      = file_to_store
+    tarball_filename  = file_to_store+"_bkp"
+    tarball_meta      = tarball_filename+"/meta.tar.gz"
+    basename_file     = os.path.basename(file_to_store)
+    dirname_file      = os.path.dirname(file_to_store)
+    output_briofile   =  file_to_store+"/output_files.d"
+
+    legal_ext = [".brio", ".meta"]
+   
+    list_of_files=os.listdir(output_briofile)
+    list_of_legal_files=[]
+    for el in list_of_files:
+        if el.endswith(tuple(legal_ext)):
+            list_of_legal_files.append(el)
+
+    if not list_of_legal_files:
+        print("\033[91mERROR\033[00m : [%s] : No BRIO files in :%s"%(function_name,output_briofile))
+        sys.exit(1)
+    else:
+        if debug: 
+            print ("DEBUG : [%s] : list of (%s) files to backup : \n%s"%(function_name,len(list_of_legal_files),list_of_legal_files)) 
+
+    
+
     try:
         if prod_mode == False:
             copy_path = snemo_cfg.get('PRODUCTION_CFG','hpss_user_path')+"/"+user_cfg.get('USER_CFG','user')
@@ -417,7 +438,7 @@ def store(arg0=None,arg1=None,arg2=None):
             copy_path = snemo_cfg.get('PRODUCTION_CFG','hpss_blessed_path')
 
         if debug: 
-            print("\033[92mINFO\033[00m  : [%s] : Expected storage path : %s"%(function_name,copy_path))
+            print("\033[92mINFO\033[00m  : [%s] : Expected storage path : %s/%s"%(function_name,copy_path,basename_file))
 
         path_exist = os.system("rfstat %s >/dev/null 2>&1"%copy_path)
         if path_exist != 0:
@@ -430,7 +451,13 @@ def store(arg0=None,arg1=None,arg2=None):
                     print("DEBUG : [%s] : Storage path create (%s)"%(function_name,copy_path))
                 
         else:
-            os.system("rfcp %s %s/%s" % (tarball_filename,copy_path,cp_filename))
+            os.system("rfmkdir %s/%s" % (copy_path,basename_file))
+            os.system("rfmkdir %s/%s/output_files.d" % (copy_path,basename_file))
+            for el in list_of_legal_files:
+                os.system("rfcp %s/%s %s/%s/output_files.d/." % (output_briofile,el,copy_path,basename_file))
+
+
+            os.system("rfcp %s %s/%s/." % (tarball_meta,copy_path,basename_file))
                 
                 
 
@@ -525,7 +552,7 @@ def check_production_status(arg0):
     prod_status = False
     if debug:
         print("DEBUG : *************************************")
-        print ("INFO : [%s] : Check production status for official publication (%s)"%(check_production_status.__name__,arg0) )
+        print("INFO  : [%s] : Check production status for official publication (%s)"%(check_production_status.__name__,arg0) )
 
 
     PROD_PATH = arg0
@@ -535,7 +562,8 @@ def check_production_status(arg0):
     
     
     for line in main_log:
-        if line == "BACKUP : OK":
+        if line.rstrip('\n') == "BACKUP : OK":
+
             prod_status = True
     
     main_log.close()
@@ -546,12 +574,16 @@ def check_production_status(arg0):
 def is_hpss_path(arg0):
 
     is_hpss = False
+    debug  = True
+
+    if debug:
+        print("INFO  : [%s] : check input path origin (%s)"%(is_hpss_path.__name__,arg0) )
 
     if arg0.split('/')[1] == "sps":
-        print("File from sps...")
+#        print("File from sps...")
         is_hpss = False
     elif arg0.split('/')[1] == "hpss":
-        print("File from hpss...")
+#        print("File from hpss...")
         is_hpss = True
     else:
         print("\033[91mERROR\033[00m : [%s] : Not designed to get file from other path than 'sps' OR 'hpss'")

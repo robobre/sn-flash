@@ -12,6 +12,7 @@ import ConfigParser
 
 ### Simulation launcher
 import cc_job_submitter
+import sn_tree_mgr
 
 #execfile("sn_simu_env.py")
 
@@ -85,35 +86,50 @@ def prepare_reco_launcher(arg0=None,arg1=None):
 
     #TMP STUFF
     INPUT_DATA_PATH  = arg1+snemo_cfg.get('PRODUCTION_CFG','output_rel_path')
+
+    print("DEBUG : [%s] : Input data path : %s "%(function_name,INPUT_DATA_PATH))
+
+    from_hpss_status = False
     from_hpss_status = sn_tree_mgr.is_hpss_path(INPUT_DATA_PATH)
     
     if from_hpss_status == True:
+        if debug: 
+            print("DEBUG : [%s] : Input data are from HPSS "%function_name)
         cp_cmd='xrdcp root://ccxroot:1999//'
     else:
+        if debug: 
+            print("DEBUG : [%s] : Inpu data are NOT from HPSS "%function_name)
         cp_cmd='cp '
-
-
-
 
     if debug:
         print("DEBUG : [%s] : Check list of input SD files "%function_name)
     
-    list_of_sd_files=os.listdir(INPUT_DATA_PATH)
+
+    if from_hpss_status == False:
+        list_of_sd_files = os.listdir(INPUT_DATA_PATH)
+    else:
+        list_of_sd_files = os.popen("rfdir %s | grep brio | tr -s ' ' | cut --d=' ' --f=9"%INPUT_DATA_PATH).readlines()
+        
+
     list_of_brio=[]
     for el in list_of_sd_files:
-        if el.endswith('.brio'):
-            list_of_brio.append(el)
+        clean_el=el.rstrip("\n")
+        if clean_el.endswith('.brio'):
+            list_of_brio.append(clean_el)
+         
 
     if not list_of_brio:
         print("\033[91mERROR\033[00m : [%s] : No input SD files in :%s"%(function_name,INPUT_DATA_PATH))
         sys.exit(1)
-                      
-            
+
     if debug:
         print ("DEBUG : [%s] : Prepare stuff for list of input files : \n%s"%(function_name,list_of_brio))
         
     JOB_CHECKER="/check.py"
-    
+
+
+
+
     try:
         log_file_name=LOG_PATH+"/main"+".log"
         check_filename=LAUNCH_PATH+JOB_CHECKER
@@ -204,13 +220,13 @@ else:\n\
             uniq_launch.write("# Contact : lemiere@lpccaen.in2p3.fr\n")
             uniq_launch.write("# Object  : SuperNEMO Uniq Simulation launcher\n\n")
             
-            uniq_launch.write("%s %s/%s .\n"%(cp_cmd,INPUT_DATA_PATH,in_file))
+            uniq_launch.write("%s%s/%s .\n"%(cp_cmd,INPUT_DATA_PATH,in_file))
             uniq_launch.write("if [ $? -eq 0 ];\nthen\n echo 'INFO : successfully copied on batch'>>  ${WORKING_PATH}/%s/%s\nelse\n  echo 'ERROR : copy failed'>>  ${WORKING_PATH}/%s/%s\n exit 1\nfi\n" % (snemo_cfg.get('PRODUCTION_CFG','sys_rel_path')+snemo_cfg.get('PRODUCTION_CFG','log_rel_path'),uniq_short_log_filename,snemo_cfg.get('PRODUCTION_CFG','sys_rel_path')+snemo_cfg.get('PRODUCTION_CFG','log_rel_path'),uniq_short_log_filename))
 
 
-            uniq_launch.write('if [ "x$WORKING_PATH" != "x" ];\nthen\n echo "INFO : WORKING_PATH exist : " ${WORKING_PATH} >>  ${WORKING_PATH}/%s\nelse\n  echo "ERROR : WORKING_PATH is empty"\n exit 1\nfi\n'% (uniq_short_log_filename))
+            uniq_launch.write('if [ "x$WORKING_PATH" != "x" ];\nthen\n echo "INFO : WORKING_PATH exist : " ${WORKING_PATH} >>  ${WORKING_PATH}/%s/%s\nelse\n  echo "ERROR : WORKING_PATH is empty"\n exit 1\nfi\n'% (snemo_cfg.get('PRODUCTION_CFG','sys_rel_path')+snemo_cfg.get('PRODUCTION_CFG','log_rel_path'),uniq_short_log_filename))
 
-            uniq_launch.write('if [ "x$SW_PATH" != "x" ];\nthen\n echo "INFO : SW_PATH exist : " ${SW_PATH} >>  ${WORKING_PATH}/%s\nelse\n  echo "ERROR : SW_PATH is empty"\n exit 1\nfi\n' % (uniq_short_log_filename))
+            uniq_launch.write('if [ "x$SW_PATH" != "x" ];\nthen\n echo "INFO : SW_PATH exist : " ${SW_PATH} >>  ${WORKING_PATH}/%s/%s\nelse\n  echo "ERROR : SW_PATH is empty"\n exit 1\nfi\n' % (snemo_cfg.get('PRODUCTION_CFG','sys_rel_path')+snemo_cfg.get('PRODUCTION_CFG','log_rel_path'),uniq_short_log_filename))
 
             
             uniq_launch.write("ls -rthla >> ${WORKING_PATH}/%s/%s"%(snemo_cfg.get('PRODUCTION_CFG','sys_rel_path')+snemo_cfg.get('PRODUCTION_CFG','log_rel_path'),uniq_short_log_filename))
@@ -246,13 +262,29 @@ else:\n\
         check_file.write("log_file.write('INFO  : running :  %s / %s \\n'  %(running_iterator,iterator)) \n")
         check_file.write("log_file.write('INFO  : error :  %s / %s \\n'    %(error_iterator,iterator))\n")
         check_file.write("log_file.write('INFO  : success :  %s / %s \\n'  %(success_iterator,iterator))\n\n")
-
-
-        check_file.write("\n\
-if success_iterator == iterator:\n\
-    log_file.write('BACKUP : OK')")
+        db_file=snemo_cfg.get('PRODUCTION_CFG','sys_rel_path')+snemo_cfg.get('PRODUCTION_CFG','log_rel_path')+"/"+"db.log"
+        new_db_file=snemo_cfg.get('PRODUCTION_CFG','sys_rel_path')+snemo_cfg.get('PRODUCTION_CFG','log_rel_path')+"/"+"db2.log"
 
         
+        check_file.write("\n\
+if success_iterator == iterator:\n\
+    log_file.write('BACKUP : OK\\n')\n\
+    db_request_file=WORKING_PATH+'/%s'\n\
+    new_db_request_file=WORKING_PATH+'/%s'\n" %(db_file,new_db_file))
+        
+        check_file.write("\n\
+    val1='unchecked'\n\
+    val2='checked'\n")
+
+        check_file.write("\n\
+    open(new_db_request_file,'w').write(\n\
+       open(db_request_file).read().replace(val1,val2))\n\n")
+        check_file.write("\n\
+    os.system('mv %s %s'%(new_db_request_file,db_request_file))\n\n")
+        check_file.write("\n\
+    log_file.write('INFO  : db file updated')\n")
+            
+                
         check_file.close()
         os.system("chmod 555 %s" % check_filename)
         
@@ -545,9 +577,26 @@ else:\n\
 #     print ('Simulation not finished ! Can not update supernemo DB')\n\
 #     log_file.write('WARNING : Simulation is not finished ! Can not update SuperNEMO DB')\n")
 
+        db_file=snemo_cfg.get('PRODUCTION_CFG','sys_rel_path')+snemo_cfg.get('PRODUCTION_CFG','log_rel_path')+"/"+"db.log"
+        new_db_file=snemo_cfg.get('PRODUCTION_CFG','sys_rel_path')+snemo_cfg.get('PRODUCTION_CFG','log_rel_path')+"/"+"db2.log"
         check_file.write("\n\
 if success_iterator == iterator:\n\
-    log_file.write('BACKUP : OK')")
+    log_file.write('BACKUP : OK\\n')\n\
+    db_request_file=WORKING_PATH+'/%s'\n\
+    new_db_request_file=WORKING_PATH+'/%s'\n" %(db_file,new_db_file))
+        check_file.write("\n\
+    val1='unchecked'\n\
+    val2='checked'\n")
+
+        check_file.write("\n\
+    open(new_db_request_file,'w').write(\n\
+       open(db_request_file).read().replace(val1,val2))\n\n")
+        check_file.write("\n\
+    os.system('mv %s %s'%(new_db_request_file,db_request_file))\n\n")
+        check_file.write("\n\
+    log_file.write('INFO  : db file updated')\n")
+
+        
 
         check_file.close()
         os.system("chmod 555 %s" % check_filename)
