@@ -1,20 +1,42 @@
 # sn-flash : SuperNEMO - Falaise launcher automatic script 
 
 > Author  : Yves Lemière
-> Contact : lemiere@lpccaen.in2p3.fr
+> Contact : lemiere-at-lpccaen.in2p3.fr
 > Date    : 2017, June
+
+
+sn-flash is python wrapper to use [Falaise](https://github.com/SuperNEMO-DBD/Falaise) software for simulation, processing (and analysis).
+
 
 
 
 ## Note
 
--[x] Tested at CCLYON
--[] Tested using another batch system
--[] Fill Database
-
+- [x] Tested at CCLYON
+- [ ] Tested using another batch system
+- [ ] Fill Database
+- [ ] Improved sn-flash initial configuration
 
 
 ## Installation
+
+To use sn-flash on your computer (account at CCLYON), you have to install :
+- [Falaise](https://github.com/SuperNEMO-DBD/Falaise) 3.0 or higher
+- [Python](https://www.python.org/downloads/source/) 3.5 or higher
+- [pyAMI_core](https://pypi.python.org/pypi/pyAMI_core/)
+- [pyAMI_supernemo](https://pypi.python.org/pypi/pyAMI_supernemo/)
+
+
+To get the python scripts get the latest dev., use 
+```
+git clone https://github.com/lemiere/sn-flash.git
+```
+
+Fill correctly the snemo.cfg file (mainly [SW_CFG] section)
+
+
+
+
 
 ## How to use it ?
 
@@ -73,8 +95,8 @@ Check that /path/on/sps/at/lyon/ylemiere/damned_sn_simu_1000 looks fine
 $ python main_mgr.py --task simu --run   /path/on/sps/at/lyon/ylemiere/damned_sn_simu_1000
 ``` 
 
-> CCLYON Batch system will start *soon*. Check batch status using `qstat` command
-> And Wait a while
+CCLYON Batch system will start *soon*. 
+Check batch status using `qstat` command and Wait a while
 
 
 
@@ -141,6 +163,25 @@ $ python main_mgr.py --task reco --store /path/on/sps/at/lyon/ylemiere/damned_sn
 ```
 
 ```
+[...]
 INFO  : [store_mc] : Expected storage path : /path/on/hpss/at/lyon/ylemiere/damned_sn_reco_1000
-7389 bytes in 0 seconds through local (in) and p3p1 (out)
 ```
+
+### Resume
+
+
+```
+$ python main_mgr.py --task simu --prepare --nb_file 5  --event_per_file 1000 --exp_name Demonstrator
+$ python main_mgr.py --task simu --run   /path/on/sps/at/lyon/ylemiere/damned_sn_simu_1000
+$ python main_mgr.py --task simu --store  /path/on/sps/at/lyon/ylemiere/damned_sn_simu_1000
+$ python main_mgr.py --task reco --prepare --input_data  /path/on/hpss/at/lyon/ylemiere/damned_sn_simu_1000 --exp_name Demonstrator
+$ python main_mgr.py --task reco --run /path/on/sps/at/lyon/ylemiere/damned_sn_reco_1000
+$ python main_mgr.py --task reco --store /path/on/sps/at/lyon/ylemiere/damned_sn_reco_1000
+
+```
+
+
+# Getting help
+
+Problem, questions, suggestions : contact author : [Yves Lemière](lemiere-at-lpccaen.in2p3.fr)
+
