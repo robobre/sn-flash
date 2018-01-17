@@ -8,6 +8,8 @@
 sn-flash is python wrapper to use [Falaise](https://github.com/SuperNEMO-DBD/Falaise) software for simulation, processing (and analysis).
 ![alt text](https://github.com/lemiere/sn-flash/blob/master/resources/logo_sn-flash.png){:height="36px" width="36px"}
 
+<img src="https://github.com/lemiere/sn-flash/blob/master/resources/logo_sn-flash.png" width="9%"></img>
+
 ## Note
 
 - [x] Tested at CCLYON
