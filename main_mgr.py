@@ -4,7 +4,7 @@
 # Author  : Y.Lemiere
 # Date    : 2017/03
 # Contact : lemiere@lpccaen.in2p3.fr
-# Object  : SuperNEMO Simulation manager
+# Object  : SuperNEMO Falaise soft manager
 
 from datetime import date, datetime
 import time
@@ -17,13 +17,17 @@ import subprocess
 import sn_tree_mgr
 
 def usage():
-    print("How to use it :\n")
-    print("-----------------")
+
+    print("\nHow to use it :")
+    print("-----------------\n")
+    print("Examples")
     print("python main_mgr.py --task simu --prepare --nb_file 10 --event_per_file 100 --exp_name Demonstrator")
     print("python main_mgr.py --task simu --run /sps/nemo/scratch/simu/ylemiere/damned_simu_1")
     print("python main_mgr.py --task simu --store /sps/nemo/scratch/simu/ylemiere/damned_simu_1")
 ##    print("python main_mgr.py --task reco --input_data='/abs_dir/run_1'\n\n")
     print("python main_mgr.py --task reco --prepare --input_data /abs_dir/run_1 --exp_name Demonstrator\n\n")
+    print("-----------------\n")
+
     print("List of option")
     print("--task [simu/reco]\n")
     print(" if simu [--prepare,--run,--store]\n")
@@ -53,9 +57,9 @@ if __name__ == '__main__':
     debug=True
 
     if debug:
-        print ("******************************************")
-        print ("*** Welcome in wonderful 'main_mgr'    ***")
-        print ("******************************************")
+        print ("**************************************************************")
+        print ("*** Welcome SuperNEMO Falaise launcher automatic script    ***")
+        print ("**************************************************************")
 
 
 
@@ -76,7 +80,7 @@ if __name__ == '__main__':
             usage()
             sys.exit(1)
 
-        if len(sys.argv) > 2:
+        if len(sys.argv) >= 2:
             i=0
             for arg in sys.argv[1:]:
                 i=i+1
