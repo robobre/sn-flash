@@ -1,22 +1,40 @@
-# sn-flash
-# SuperNEMO - Falaise launcher automatic script 
-# Created by ylemiere 
-# Contact : lemiere@lpccaen.in2p3.fr
-# Date    : 2017, June
+# sn-flash : SuperNEMO - Falaise launcher automatic script 
+Created by ylemiere 
+Contact : lemiere@lpccaen.in2p3.fr
+Date    : 2017, June
 
-Display the help : 
+
+
+
+
+
+
+## Installation
+
+## How to use it 
+
+- [] Prepare working tree
+- [] Run on batch system
+- [] Store production on HPSS
+
+### Display the help
+
+```
 ./main_mgr.py --help
+```
 
+## Full example
 
-Full example :
-==============
- 
+### Command to prepare simulation 
+
+```
 [CMD 0] python main_mgr.py --task simu --prepare --nb_file 5  --event_per_file 1000 --exp_name Demonstrator
+```
 
 **Answer to questions**
 
 
-DEBUG : [prepare_tree] : working tree starting by /sps/nemo/scratch/simu/ylemiere/damned_sn_simu_1000
+*DEBUG : [prepare_tree] : working tree starting by /sps/nemo/scratch/simu/ylemiere/damned_sn_simu_1000
              |-> CONFIG PATH            : /sps/nemo/scratch/simu/ylemiere/damned_sn_simu_1000/config.d
              |      |-> VARIANT PATH    : /variant.d/
              |      |      `-> file name:  variant.profile
@@ -29,13 +47,15 @@ DEBUG : [prepare_tree] : working tree starting by /sps/nemo/scratch/simu/ylemier
                     `-> LAUNCHER PATH   : /launcher.d/
 [...]
 INFO : [main_mgr.py] : You can process that cmd :
-python main_mgr.py --task simu --run PATH
+python main_mgr.py --task simu --run PATH*
 
-**Check that /sps/nemo/scratch/simu/ylemiere/damned_sn_simu_1000 looks fine**
+Check that /sps/nemo/scratch/simu/ylemiere/damned_sn_simu_1000 looks fine
 
 
-
+```
 [CMD 1] python main_mgr.py --task simu --run  /sps/nemo/scratch/simu/ylemiere/damned_sn_simu_1000
+``` 
+
 [...]
 INFO  : [run] : cc_job_submitter.qsub done...
 
