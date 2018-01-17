@@ -1,8 +1,8 @@
 # sn-flash : SuperNEMO - Falaise launcher automatic script 
 
-> Author  : Yves Lemière
-> Contact : lemiere-at-lpccaen.in2p3.fr
-> Date    : 2017, June
+* Author : Yves Lemiere
+* email  : lemiere-at-lpccaen.in2p3.fr
+* date   : 2018 
 
 
 sn-flash is python wrapper to use [Falaise](https://github.com/SuperNEMO-DBD/Falaise) software for simulation, processing (and analysis).
@@ -15,7 +15,7 @@ sn-flash is python wrapper to use [Falaise](https://github.com/SuperNEMO-DBD/Fal
 - [x] Tested at CCLYON
 - [ ] Tested using another batch system
 - [ ] Fill Database
-- [ ] Improved sn-flash initial configuration
+- [ ] sn-flash initial configuration to improve
 
 
 ## Installation
@@ -174,6 +174,7 @@ INFO  : [store_mc] : Expected storage path : /path/on/hpss/at/lyon/ylemiere/damn
 $ python main_mgr.py --task simu --prepare --nb_file 5  --event_per_file 1000 --exp_name Demonstrator
 $ python main_mgr.py --task simu --run   /path/on/sps/at/lyon/ylemiere/damned_sn_simu_1000
 $ python main_mgr.py --task simu --store  /path/on/sps/at/lyon/ylemiere/damned_sn_simu_1000
+
 $ python main_mgr.py --task reco --prepare --input_data  /path/on/hpss/at/lyon/ylemiere/damned_sn_simu_1000 --exp_name Demonstrator
 $ python main_mgr.py --task reco --run /path/on/sps/at/lyon/ylemiere/damned_sn_reco_1000
 $ python main_mgr.py --task reco --store /path/on/sps/at/lyon/ylemiere/damned_sn_reco_1000
@@ -183,5 +184,8 @@ $ python main_mgr.py --task reco --store /path/on/sps/at/lyon/ylemiere/damned_sn
 
 # Getting help
 
-Problem, questions, suggestions : contact author : [Yves Lemière](lemiere-at-lpccaen.in2p3.fr)
+Problem, questions, suggestions : [raise an issue](https://github.com/lemiere/sn-flash/issues).
+
+
+
 
