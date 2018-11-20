@@ -47,8 +47,8 @@ def prepare_fill_db(arg1=None,arg2=None,arg3=None):
 if running_iterator == 0 and error_iterator == 0 and success_iterator == iterator:\n\
     print ('INFO  : DB updated with : %s' % db_input)\n\
     log_file.write('INFO  : DB updated with : %s'%db_input) \n\
-    client = pyAMI.client.Client('supernemo')\n\
-    client.execute(db_input)\n\
+    #client = pyAMI.client.Client('supernemo')\n\
+    #client.execute(db_input)\n\
     db_request = open(db_request_file,'w')\n\
     db_request.write(db_input)\n\
 else:\n\
@@ -142,8 +142,8 @@ def prepare_reco_launcher(arg0=None,arg1=None):
 
         check_file.write("# Create this file automatically from %s at %s \n\n" % (function_name,datetime.now()))
         check_file.write("import sys\nimport tarfile\nimport os\n\n\n")
-        check_file.write("import pyAMI.client\n")
-        check_file.write("import pyAMI_supernemo\n\n\n")
+        #check_file.write("import pyAMI.client\n")
+        #check_file.write("import pyAMI_supernemo\n\n\n")
 
         check_file.write("WORKING_PATH=os.environ['WORKING_PATH']\n")
         check_file.write("iterator=0 \nrunning_iterator=0\nerror_iterator=0\nsuccess_iterator=0\n\n")
@@ -371,8 +371,8 @@ def prepare_simu_launcher(arg1=None,arg2=None,arg3=None,arg4=None, arg5=None, ar
 
         check_file.write("# Create this file automatically from %s at %s \n\n" % (function_name,datetime.now()))
         check_file.write("import sys\nimport tarfile\nimport os\n\n\n")
-        check_file.write("import pyAMI.client\n")
-        check_file.write("import pyAMI_supernemo\n\n\n")
+        #check_file.write("import pyAMI.client\n")
+        #check_file.write("import pyAMI_supernemo\n\n\n")
 
         check_file.write("WORKING_PATH=os.environ['WORKING_PATH']\n")
         check_file.write("iterator=0 \nrunning_iterator=0\nerror_iterator=0\nsuccess_iterator=0\n\n")

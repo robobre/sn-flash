@@ -1,4 +1,3 @@
-
 #!/usr/bin/env python
 
 
@@ -15,8 +14,6 @@ import os
 import subprocess
 
 import ConfigParser
-
-##execfile("sn_simu_env.py")
 
 def qsub(arg0=None,arg1=None,arg2=None):
 

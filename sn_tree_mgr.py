@@ -21,9 +21,9 @@ import sn_simu_mgr
 import sn_reco_mgr
 import cc_job_submitter
 
-###  AMI
-import pyAMI.client
-import pyAMI_supernemo
+###  AMI Free version
+#import pyAMI.client
+#import pyAMI_supernemo
 
 
 def prepare_tree(arg0=None,arg1=None,arg2=None,arg3=None,arg4=None,arg5=None,arg6=None):

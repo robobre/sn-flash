@@ -17,9 +17,9 @@ import uuid
 import tarfile
 import ConfigParser
 
-###  AMI
-import pyAMI.client
-import pyAMI_supernemo
+###  AMI free version
+#import pyAMI.client
+#import pyAMI_supernemo
 
 
 import sn_multi_launcher

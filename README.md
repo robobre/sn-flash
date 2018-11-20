@@ -14,6 +14,7 @@ sn-flash is python wrapper to use [Falaise](https://github.com/SuperNEMO-DBD/Fal
 ## Note
 
 - [x] Tested at CCLYON
+- [x] Propose a AMI free version
 - [ ] Tested using another batch system
 - [ ] Fill Database
 - [ ] sn-flash initial configuration to improve
