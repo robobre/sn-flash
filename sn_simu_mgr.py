@@ -18,8 +18,8 @@ import tarfile
 import ConfigParser
 
 ###  AMI
-import pyAMI.client
-import pyAMI_supernemo
+# import pyAMI.client
+# import pyAMI_supernemo
 
 
 import sn_multi_launcher
