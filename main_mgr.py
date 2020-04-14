@@ -132,7 +132,7 @@ if __name__ == '__main__':
 
     if debug:
         print("DEBUG : [%s] : arguments :" %APP_NAME )
-        print "DEBUG :  task  == ",
+        print("DEBUG :  task  == ",)
         if simulation == True and reconstruction == False:
             print("Simulation")
             if prepare_tree == True:
