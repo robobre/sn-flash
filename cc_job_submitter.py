@@ -14,7 +14,7 @@ import sys
 import os
 import subprocess
 
-import ConfigParser
+import configparser as ConfigParser
 
 ##execfile("sn_simu_env.py")
 
