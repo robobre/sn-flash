@@ -119,7 +119,7 @@ if __name__ == '__main__':
                     sys.exit(1)
                
         else:
-            print "\033[91mERROR\033[00m : [%s] : No input args" % APP_NAME
+            print ("\033[91mERROR\033[00m : [%s] : No input args" % APP_NAME)
             usage()
             sys.exit(1)
         
