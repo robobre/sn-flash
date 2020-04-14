@@ -15,8 +15,7 @@ import subprocess
 import pipes
 import uuid
 import tarfile
-import ConfigParser
-
+import configparser as ConfigParser
 ###  AMI
 # import pyAMI.client
 # import pyAMI_supernemo

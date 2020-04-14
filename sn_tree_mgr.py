@@ -12,7 +12,7 @@ import time
 import sys
 import os
 import subprocess
-import ConfigParser
+import configparser as ConfigParser
 import uuid
 import fnmatch
 import tarfile

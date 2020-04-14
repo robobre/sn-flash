@@ -7,8 +7,8 @@ import sys
 import os
 import subprocess
 import glob
-import ConfigParser
 
+import configparser as ConfigParser
 
 ### Simulation launcher
 import cc_job_submitter
