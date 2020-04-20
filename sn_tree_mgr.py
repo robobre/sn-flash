@@ -12,7 +12,8 @@ import time
 import sys
 import os
 import subprocess
-import configparser as ConfigParser
+## import configparser as ConfigParser ##python3
+import ConfigParser
 import uuid
 import fnmatch
 import tarfile

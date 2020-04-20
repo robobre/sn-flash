@@ -14,8 +14,8 @@ import sys
 import os
 import subprocess
 
-import configparser as ConfigParser
-
+## import configparser as ConfigParser
+import ConfigParser
 ##execfile("sn_simu_env.py")
 
 def qsub(arg0=None,arg1=None,arg2=None):

@@ -10,7 +10,8 @@ import time
 import sys
 import os
 import subprocess
-import configparser as ConfigParser
+## import configparser as ConfigParser
+import ConfigParser
 import uuid
 
 
