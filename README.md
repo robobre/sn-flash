@@ -33,10 +33,15 @@ To get the python scripts get the latest dev., use
 git clone https://github.com/lemiere/sn-flash.git
 ```
 
-Fill correctly the snemo.cfg file (mainly [SW_CFG] section)
+## Initialisation
 
+Fill correctly the snemo.cfg and user.cfg file (mainly [SW_CFG] section)
 
+You may use the automated script provided  :
 
+```
+./init_cfg.sh
+```
 
 
 ## How to use it ?
