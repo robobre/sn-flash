@@ -1,0 +1,44 @@
+[SIMU_CFG]
+urn_blessed_snemo = urn:snemo:demonstrator:simulation:2.3
+simulation_tag= sn_simu
+
+[RECO_CFG]
+reconstruction_tag= sn_reco
+urn_ = NONE
+reconstruction_conf = INIT_FALAISE/share/Falaise-4.0.1/resources/snemo/demonstrator/reconstruction/pipeline/flreconstruct.conf
+
+[PRODUCTION_CFG]
+main_production_path = /sps/nemo/scratch/simu
+hpss_user_path = /hpss/in2p3.fr/group/nemo/users
+hpss_blessed_path = /hpss/in2p3.fr/group/nemo/SuperNEMO/simulation/production
+config_rel_path = /config.d
+seed_rel_path = /seeds.d
+variant_rel_path = /variant.d
+conf_rel_path = /conf.d
+sys_rel_path = /.sys
+log_rel_path = /log.d
+launcher_rel_path = /launcher.d
+output_rel_path = /output_files.d
+job_checker = /simu_check.py
+
+
+[BATCH_CFG]
+submit_option = -P P_nemo -l sps=1 -l hpss=1 -r y -V
+
+[DB_CFG]
+project_name = supernemo
+processing_name = production
+entity_name = demo
+log_db = simu.db
+
+[SW_CFG]
+sw_base_path = INIT_FALAISE
+sw_path = INIT_FALAISE/bin
+bx_install_path = INIT_BAYEUX/bin
+sw_snemo_simulation = flsimulate
+sw_snemo_reconstruction = flreconstruct
+sw_snemo_configuration = flsimulate-configure
+bx_seeds = bxg4_seeds
+bxvariant_inspector = bxvariant_inspector
+
+

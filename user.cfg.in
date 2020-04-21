@@ -1,0 +1,4 @@
+[USER_CFG]
+mail_to = INIT_EMAIL
+user = INIT_USER
+main_path = INIT_SNFLASH
