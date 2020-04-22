@@ -15,7 +15,17 @@ import os
 import subprocess
 
 ## import configparser as ConfigParser
-import ConfigParser
+#import ConfigParser
+
+
+try:
+    # Python 2 only:
+    import ConfigParser as ConfigParser
+except ImportError:
+    # Python 2 and 3 (after ``pip install configparser``)
+    import configparser as ConfigParser
+
+
 ##execfile("sn_simu_env.py")
 
 def qsub(arg0=None,arg1=None,arg2=None):

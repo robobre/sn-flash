@@ -11,9 +11,17 @@ import sys
 import os
 import subprocess
 ## import configparser as ConfigParser
-import ConfigParser
+#import ConfigParser
 import uuid
 
+try:
+    # Python 2 only:
+    import ConfigParser as ConfigParser
+except ImportError:
+    # Python 2 and 3 (after ``pip install configparser``)
+    import configparser as ConfigParser
+
+    
 
 import sn_simu_mgr
 import sn_multi_launcher

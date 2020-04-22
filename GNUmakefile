@@ -1,7 +1,7 @@
 # GNUmakefile
 
 all :
-	cat README.md
+	./init_cfg.sh
 
 clean :
 	find ./ -name "*~" -exec $(RM) \{\} \;

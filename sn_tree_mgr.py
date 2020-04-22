@@ -13,7 +13,17 @@ import sys
 import os
 import subprocess
 ## import configparser as ConfigParser ##python3
-import ConfigParser
+#import ConfigParser
+
+try:
+    # Python 2 only:
+    import ConfigParser as ConfigParser
+except ImportError:
+    # Python 2 and 3 (after ``pip install configparser``)
+    import configparser as ConfigParser
+
+
+
 import uuid
 import fnmatch
 import tarfile
@@ -89,11 +99,12 @@ def prepare_tree(arg0=None,arg1=None,arg2=None,arg3=None,arg4=None,arg5=None,arg
         OUTPUT_PATH=snemo_cfg.get('PRODUCTION_CFG','main_production_path')+"/"+user_cfg.get('USER_CFG','user')
         current_index = input("REQUEST : Enter a unique identifier (number) : ")
 
-        
-    sn_user_comment = raw_input("REQUEST : Enter a comment : ")
+  
+    sn_user_comment = input("REQUEST : Enter a comment : ")
     if not sn_user_comment:
         print("\033[1;33;40mWARNING\033[00m : No user comment --> No comment the dark side is ... it, you will use ...!\n")
-        
+
+
         
     CURRENT_OUTPUT_PATH = OUTPUT_PATH+"/"+prefix_file+"_"+str(current_index)
     if production_mode:
@@ -158,13 +169,17 @@ def prepare_tree(arg0=None,arg1=None,arg2=None,arg3=None,arg4=None,arg5=None,arg
     p = subprocess.Popen(args=["%s/%s --version" % (snemo_cfg.get('SW_CFG','sw_path'),sw)],stdout=subprocess.PIPE,stderr=subprocess.STDOUT,shell=True)
     outputlines = p.stdout.readlines()
     p.wait()
+
     
-    p = subprocess.Popen(args=["%s/flquery --version" % (snemo_cfg.get('SW_CFG','sw_path'))],stdout=subprocess.PIPE,stderr=subprocess.STDOUT,shell=True)
+    p = subprocess.Popen(args=["%s/flsimulate --version" % (snemo_cfg.get('SW_CFG','sw_path'))],stdout=subprocess.PIPE,stderr=subprocess.STDOUT,shell=True)
     subprocess_output = p.stdout.readlines()
     p.wait()
     
 
-
+    
+    
+    falaise_version=str(subprocess_output[0]).split(" ")[1]
+    
     log_file.write("\n")
     log_file.write("DEBUG : [%s] :  working tree : \n"%function_name)
     log_file.write("DEBUG : Start at             : %s \n" % function_start_time)
@@ -172,7 +187,7 @@ def prepare_tree(arg0=None,arg1=None,arg2=None,arg3=None,arg4=None,arg5=None,arg
     log_file.write("DEBUG : ***** SW used ******\n")     
     if simulation_mode:
         log_file.write("DEBUG : Simulation exe       : %s/%s \n" % (snemo_cfg.get('SW_CFG','sw_path'),sw))
-        log_file.write("DEBUG : Simulation version   :\n \t%s\t%s\t%s\t%s" % (outputlines[5],outputlines[6],outputlines[7],outputlines[8] ) )
+        log_file.write("DEBUG : Simulation version   :\n \t%s\t%s\t%s\t%s\n" % (outputlines[5],outputlines[6],outputlines[7],outputlines[8] ) )
         log_file.write("DEBUG : ***** setup used ******\n")     
         log_file.write("DEBUG : main setup urn     : %s \n" % snemo_cfg.get('SIMU_CFG','urn_blessed_snemo'))
     elif reconstruction_mode:
@@ -202,7 +217,7 @@ def prepare_tree(arg0=None,arg1=None,arg2=None,arg3=None,arg4=None,arg5=None,arg
     log_db.write('processingStep="production"\n')
     log_db.write('entity="demo"\n')
     
-    log_db.write('sw_version="Falaise_%s"\n'%(subprocess_output[0].rstrip('\n')))
+    log_db.write('sw_version="Falaise_%s"\n'%(falaise_version))
     log_db.write('experiment="%s"\n'%(experiment_name))
     log_db.write('user="%s"\n'%(user_cfg.get('USER_CFG','user')))
     log_db.write('simu_id="%s"\n'%(prefix_file+"_"+str(current_index)))

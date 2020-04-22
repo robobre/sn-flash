@@ -8,11 +8,18 @@ import os
 import subprocess
 import glob
 
-#import configparser as ConfigParser
-import ConfigParser
 ### Simulation launcher
 import cc_job_submitter
 import sn_tree_mgr
+
+try:
+    # Python 2 only:
+    import ConfigParser as ConfigParser
+except ImportError:
+    # Python 2 and 3 (after ``pip install configparser``)
+    import configparser as ConfigParser
+
+
 
 #execfile("sn_simu_env.py")
 
