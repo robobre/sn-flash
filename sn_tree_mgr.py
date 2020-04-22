@@ -99,8 +99,12 @@ def prepare_tree(arg0=None,arg1=None,arg2=None,arg3=None,arg4=None,arg5=None,arg
         OUTPUT_PATH=snemo_cfg.get('PRODUCTION_CFG','main_production_path')+"/"+user_cfg.get('USER_CFG','user')
         current_index = input("REQUEST : Enter a unique identifier (number) : ")
 
-  
-    sn_user_comment = input("REQUEST : Enter a comment : ")
+    if sys.version_info[0] == 2:
+        sn_user_comment = raw_input("REQUEST : Enter a comment : ")
+    if sys.version_info[0] == 3:
+        sn_user_comment = input("REQUEST : Enter a comment : ")
+
+        
     if not sn_user_comment:
         print("\033[1;33;40mWARNING\033[00m : No user comment --> No comment the dark side is ... it, you will use ...!\n")
 
