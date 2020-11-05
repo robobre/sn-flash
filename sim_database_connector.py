@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python2.7
 import mysql.connector
 from mysql.connector import Error
 from metadata_parser import metadata_parser
@@ -62,18 +62,18 @@ class MYSQL_SIM_DATA:
          cursor.close()
          return record[0]
      
-    def store_simu (self, prodID, Site, Path_of_files, Nb_ev, Nb_of_files,md5sum, Falaise_version,comment):
+    def store_simu (self, ProdID, Site, Path_of_files, Nb_ev, Nb_of_files,md5sum, Falaise_version,comment):
          #type: (MYSQL_SIM_DATA,str,str,int,int,str,str,str)
          cursor=self.connection.cursor()
          cursor.execute("INSERT INTO sim_simulation ( Prod_ID, Site, Path_of_Files, Nb_of_events, Nb_of_files, Falaise_version, md5sum, long_comment) VALUES(%s,%s,%s,%s,%s,%s,%s,%s)",( ProdID, Site, Path_of_files, Nb_ev, Nb_of_files, Falaise_version, md5sum, comment))
          cursor.execute('SELECT last_insert_id()')
          record = cursor.fetchone()
-         cursor.execute("UPDATE sim_production SET simulation=%s where ID=%s"%(1,prodID))
+         cursor.execute("UPDATE sim_production SET simulation=%s where ID=%s"%(1,ProdID))
 #         cursor.execute
          self.connection.commit()
          cursor.close()
          return record[0]
-    def store_reco (self, prodID, simID, path_of_files, Nb_of_events, Nb_of_files, Sw_version,data_type, reconstruct_conf, md5sum, long_comment)
+    def store_reco (self, prodID, simID, path_of_files, Nb_of_events, Nb_of_files, Sw_version,data_type, reconstruct_conf, md5sum, long_comment):
          #type:(MYSQL_SIM_DATA,int,int,str,int,int,str,str,str,str)
          cursor=self.connection.cursor()
          cursor.execute("INSERT INTO sim_simulation (ProdID, SimID,Path_of_Files,Nb_of_events,Nb_of_files, Sw_version,data_type, reconstruct_conf, md5sum,long_comment) VALUES(%s,%s,%s,%s,%s,%s,%s,%s, %s,%s) ",(prodID,simID,path_of_files, Nb_of_events, Nb_of_files, Sw_version,data_type, reconstruct_conf, md5sum, long_comment))
@@ -81,7 +81,7 @@ class MYSQL_SIM_DATA:
 myconnect=MYSQL_SIM_DATA(0)
 rec=myconnect.init_prod("breier","nieco","nieco","nieco2","nieco3","nieco4")
 rec1=myconnect.store_simu(rec,"cc","/adresa/suboru/",10000,10,"hash","5.6.7","comentujem si")
-myconnect.store_reco(rec, rec1 ,"/adresa/recosuboru/",10000,10,10.6.1,1,,hash,comentujem )
+#myconnect.store_reco(rec, rec1 ,"/adresa/recosuboru/",10000,10,10.6.1,1,,hash,comentujem )
 #:print("You're connected to database: ", rec)
 conf_path="../simdata/"
 filename="output_files.d/file_0.meta"
