@@ -31,6 +31,7 @@ import tarfile
 import sn_simu_mgr
 import sn_reco_mgr
 import cc_job_submitter
+import sim_database_connector
 
 ###  AMI
 # import pyAMI.client
@@ -147,7 +148,9 @@ def prepare_tree(arg0=None,arg1=None,arg2=None,arg3=None,arg4=None,arg5=None,arg
         #config
         os.makedirs(CURRENT_OUTPUT_PATH+snemo_cfg.get('PRODUCTION_CFG','config_rel_path'))
         if simulation_mode:
-            os.makedirs(CURRENT_OUTPUT_PATH+snemo_cfg.get('PRODUCTION_CFG','config_rel_path')+snemo_cfg.get('PRODUCTION_CFG','variant_rel_path')) 
+            os.makedirs(CURRENT_OUTPUT_PATH+snemo_cfg.get('PRODUCTION_CFG','config_rel_path')+snemo_cfg.get('PRODUCTION_CFG','variant_rel_path'))
+            if production_mode: 
+               sim_database_connector.init_prod(self,username,event_generator,vertex_generator,expsetURN,mag_field, source_mat)
         os.makedirs(CURRENT_OUTPUT_PATH+snemo_cfg.get('PRODUCTION_CFG','config_rel_path')+snemo_cfg.get('PRODUCTION_CFG','conf_rel_path'))
         #data
         os.makedirs(CURRENT_OUTPUT_PATH+snemo_cfg.get('PRODUCTION_CFG','output_rel_path')) 
