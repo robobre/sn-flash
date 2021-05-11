@@ -1,0 +1,4 @@
+export MYSQL_HOST= <HOST>
+export DB_NAME=<DB_NAME>;
+export DB_USERNAME=<DB_USERNAME>;
+export DB_PW=<PASSWD>;

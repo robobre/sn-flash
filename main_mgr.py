@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 
 # Author  : Y.Lemiere
@@ -159,7 +159,7 @@ if __name__ == '__main__':
     #SIMULATION PURPOSE
     
     if prepare_tree == True:
-        try:
+      #  try:
             print("\n")
             #sn_simu_mgr_next.prepare_tree(nb_file,nb_event,exp_name,production,variant_file)
             if simulation == True and reconstruction == False:
@@ -181,9 +181,9 @@ if __name__ == '__main__':
                 print("INFO : [%s] : You can process that cmd :\n python main_mgr.py --task reco --run PATH"%APP_NAME)
                 print("\n")
                 
-        except:
-            print("\033[91mERROR\033[00m : [%s] : Can not execute prepare_tree"%APP_NAME)
-            sys.exit(1)
+       # except:
+       #     print("\033[91mERROR\033[00m : [%s] : Can not execute prepare_tree"%APP_NAME)
+       #     sys.exit(1)
 
 
     if run_prod == True:

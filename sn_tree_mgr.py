@@ -32,6 +32,8 @@ import sn_simu_mgr
 import sn_reco_mgr
 import cc_job_submitter
 import sim_database_connector
+import variant_parser
+import getpass
 
 ###  AMI
 # import pyAMI.client
@@ -92,7 +94,18 @@ def prepare_tree(arg0=None,arg1=None,arg2=None,arg3=None,arg4=None,arg5=None,arg
     if production_mode:
         print ("\n\033[92mINFO\033[00m : [%s] : Production mode activated\n"%(function_name) )
         OUTPUT_PATH=snemo_cfg.get('PRODUCTION_CFG','main_production_path')+"/blessed"
-        current_index=uuid.uuid1()
+        #current_index=uuid.uuid1()
+#        try:
+        myconnect=sim_database_connector.MYSQL_SIM_DATA()
+        print(myconnect.is_connected())
+        if simulation_mode:
+           current_index=myconnect.new_row()
+        if reconstruction_mode:
+           current_index=myconnect.new_row_reco()
+#        except:
+#                print ("\033[91mERROR\033[00m   Can not connect to MYSQL ...")
+	
+	
 
     else:
         print ("\n\033[92mINFO\033[00m : [%s] : User mode activated \n"%(function_name))
@@ -149,8 +162,6 @@ def prepare_tree(arg0=None,arg1=None,arg2=None,arg3=None,arg4=None,arg5=None,arg
         os.makedirs(CURRENT_OUTPUT_PATH+snemo_cfg.get('PRODUCTION_CFG','config_rel_path'))
         if simulation_mode:
             os.makedirs(CURRENT_OUTPUT_PATH+snemo_cfg.get('PRODUCTION_CFG','config_rel_path')+snemo_cfg.get('PRODUCTION_CFG','variant_rel_path'))
-            if production_mode: 
-               sim_database_connector.init_prod(self,username,event_generator,vertex_generator,expsetURN,mag_field, source_mat)
         os.makedirs(CURRENT_OUTPUT_PATH+snemo_cfg.get('PRODUCTION_CFG','config_rel_path')+snemo_cfg.get('PRODUCTION_CFG','conf_rel_path'))
         #data
         os.makedirs(CURRENT_OUTPUT_PATH+snemo_cfg.get('PRODUCTION_CFG','output_rel_path')) 
@@ -240,6 +251,7 @@ def prepare_tree(arg0=None,arg1=None,arg2=None,arg3=None,arg4=None,arg5=None,arg
     if simulation_mode:
         log_db.write('event_per_file="%s"\n'%(nb_event))
         log_db.write('nb_of_file="%s"\n'%(nb_of_files))
+        log_db.write('UID="%s"\n'%(current_index))
     
     log_db.write('user_comment="%s"\n'%(sn_user_comment))
     log_db.write('date="%s"\n'%(datetime.now()))
@@ -253,16 +265,29 @@ def prepare_tree(arg0=None,arg1=None,arg2=None,arg3=None,arg4=None,arg5=None,arg
         if debug:
             print("DEBUG : [%s] : ready for simulation files production..."%function_name )
             try:
-                sn_simu_mgr.prepare_files(CURRENT_OUTPUT_PATH,variant_short_name,nb_of_files,nb_event,experiment_name,prefix_file+"_"+str(current_index))
+              sn_simu_mgr.prepare_files(CURRENT_OUTPUT_PATH,variant_short_name,nb_of_files,nb_event,experiment_name,prefix_file+"_"+str(current_index))
+              if production_mode:
+                variant_p=variant_parser.variant_parser(0)
+                variant_path=CURRENT_OUTPUT_PATH+snemo_cfg.get('PRODUCTION_CFG','config_rel_path')+snemo_cfg.get('PRODUCTION_CFG','variant_rel_path')
+                variant_p.parse_file( variant_path,variant_short_name)
+                magnetic = [val for key, val in variant_p.data["geometry"].items() if "magnetic_field" in key]
+                source=[val for key, val in variant_p.data["geometry"].items() if "source_layout" in key]
+                myconnect.init_prod(int(current_index),getpass.getuser(),  variant_p.data["primary_events"]["generator"],  variant_p.data["vertexes"]["generator"],snemo_cfg.get('SIMU_CFG','urn_blessed_snemo'),str(magnetic),str(source),variant_path+"/"+variant_short_name,CURRENT_OUTPUT_PATH, falaise_version,sn_user_comment,nb_event,nb_of_files  )
             except:
-                print("\033[91mERROR\033[00m : [%s] : Can not prepare files for simulation purpose"%function_name)
-                log_file.write("\033[91mERROR\033[00m : [%s] : Can not prepare files for simulation purpose"%function_name)
-                sys.exit(1)
-                
+              print("\033[91mERROR\033[00m : [%s] : Can not prepare files for simulation purpose"%function_name)
+              log_file.write("\033[91mERROR\033[00m : [%s] : Can not prepare files for simulation purpose"%function_name)
+              sys.exit(1)
+    
     elif reconstruction_mode:
         if debug:
             print("DEBUG : [%s] : ready for reconstruction files production..."%function_name )
             sn_reco_mgr.prepare_files(CURRENT_OUTPUT_PATH,INPUT_PATH)
+            if production_mode:
+              par=variant_parser.variant_parser(0)
+              par.parse_db(INPUT_PATH+"/.sys/log.d/","simu.db")
+              myconnect.init_reco(int(current_index),par.data["UID"], falaise_version,1,CURRENT_OUTPUT_PATH+"/config.d/conf.d/flreconstruct.conf","none", CURRENT_OUTPUT_PATH ,sn_user_comment)
+#              myconnect.store_simu()
+            
     else:
         print ("\033[91mERROR\033[00m : [%s] : Should be simulation OR reconstruction..."%function_name)
         exit(1)
@@ -348,6 +373,7 @@ def run(arg0=None,arg1=None):
                 job_name=fileName
                 uniq_launch_filename=launch_path+"/"+file
                 cc_job_submitter.qsub(job_name,main_path,uniq_launch_filename)
+		
 
                 
         print("INFO  : [%s] : cc_job_submitter.qsub done..."%function_name)
